@@ -23,7 +23,6 @@ class Plotter():
         librosa.display.waveplot(self.song.samples, sr=self.song.sample_rate)
     
     def draw_plot(self):
-        plt.figure(1)
         rows = len(self.plots)
         if rows == 0:
             return
@@ -32,6 +31,7 @@ class Plotter():
             Plotter.PlotterEnums.WAVEFORM : Plotter._draw_waveform
         }
 
+        plt.figure(1)
         for i in range(len(self.plots)):
            plt.subplot(rows, 1, i + 1)
            _switch[self.plots[i]](self)

@@ -35,8 +35,13 @@ class Song:
         
         self.samples.tofile(out_path)
     
-    # Analyzes the song, loads/decompresses it if it has not been previously loaded/decompressed
     def analyze(self, *args):
+        """
+        Analyze the provided song and stores the analyzed attributes in self.analysis, if the song has not been loaded yet, it loads it as well
+
+        :param song: the song to analyze
+        :param *args: the attributes of the song to analyze, need to be defined enums, if none are provided then all attributes are analyzed
+        """
         if not self.is_loaded():
             self.load()
         
@@ -49,14 +54,17 @@ class Song:
         else:
             return self.analysis is not None and attr in self.analysis
 
-    # Gets the tempo for the song, analyzes the song if it has not been previously analyzed
     def get_tempo(self):
         if not self.is_analyzed(Analyzer.TEMPO):
             self.analyze(Analyzer.TEMPO)
         
         return self.analysis[Analyzer.TEMPO]
 
-    # Needed for batch loading of songs util.Methods.load_songs
     @staticmethod
     def load_song(song):
+        """
+        Static method to load a song, needed to do multiprocess loading of songs in util.Methods.load_songs
+
+        :param song: the song to load
+        """
         song.load()

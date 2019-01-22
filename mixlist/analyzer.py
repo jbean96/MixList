@@ -3,6 +3,7 @@ from enum import Enum, auto
 from mixlist import song
 
 class Analyzer(Enum):
+    # Will only need to move these into inner class if Analyzer can be instantiated, right now it's just a static class
     TEMPO = auto()
     KEY = auto()
 
@@ -35,7 +36,7 @@ class Analyzer(Enum):
             Analyzer.TEMPO : Analyzer._analyze_tempo,
             Analyzer.KEY : Analyzer._analyze_key
         }
-        
+
         if attribute in _switch:
             return _switch[attribute](song)
 
