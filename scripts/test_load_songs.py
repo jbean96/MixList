@@ -1,7 +1,7 @@
 # pylint:disable=E1101
-# VSCode can't resolve dependency for some reason so we need to disable warning with the line above
+# pylint:disable=E0611
+# PyLint can't resolve these warnings for some reason, so ignore them
 
-from datetime import datetime
 import os
 import sys
 import argparse
