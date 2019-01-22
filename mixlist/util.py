@@ -1,7 +1,7 @@
 import multiprocessing
 import librosa
-from mixlist import song
 from datetime import datetime
+from mixlist import song
 
 class Globals:
     # Global resampling method to use: ['kaiser_best', 'kaiser_fast', 'scipy']

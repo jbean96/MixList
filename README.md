@@ -3,7 +3,6 @@
 [mixlist](#mixlist)<br/>
 [proposal](#proposal)<br/>
 [scripts](#scripts)<br/>
-songs.zip - Compressed folder of some sample songs that we can use for testing, feel free to add more
 
 ## mixlist
 
