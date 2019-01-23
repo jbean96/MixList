@@ -13,14 +13,19 @@ from mixlist import plotter
 
 def main(args):
     p = plotter.Plotter(song.Song(args.song))
+    
     if (args.wave):
         p.plot_waveform()
+    if (args.beats):
+        p.plot_beat_sample()
+        
     p.draw_plot()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Plot a song and it's attributes")
     parser.add_argument("song", metavar="song", help="The song to plot")
     parser.add_argument("--wave", "-w", dest="wave", default=False, const=True, action="store_const", help="Plot the waveform of the song")
+    parser.add_argument("--beats", "-b", dest="beats", default=False, const=True, action="store_const", help="Plot a sample of the beats of the song")
     args = parser.parse_args()
 
     main(args)

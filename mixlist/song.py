@@ -9,10 +9,15 @@ class Song:
         self.path = path
         self.samples = None
         self.sample_rate = None
-        self.analysis = None
+        self.analysis = {}
     
     def get_name(self):
         return os.path.basename(self.path)
+
+    def get_duration(self):
+        if not self.is_loaded():
+            self.load()
+        return librosa.get_duration(self.samples, self.sample_rate)
 
     def load(self):
         if self.is_loaded():
@@ -25,15 +30,12 @@ class Song:
     def is_loaded(self):
         return self.samples is not None and self.sample_rate is not None
     
-    # TODO: Needs to write sample_rate to the file as well so that both can be loaded faster (not completely necessary)
-    def write_to_file(self):
-        out_path = self.path[:self.path.rindex(".")]
-        out_path = out_path + ".asys"
-        print("Writing %s to file %s" % (self.path, out_path))
+    def output(self, path):
         if not self.is_loaded():
             self.load()
         
-        self.samples.tofile(out_path)
+        print("Outputting song to file: %s" % path)
+        librosa.output.write_wav(path, y=self.samples, sr=self.sample_rate)
     
     def analyze(self, *args):
         """
@@ -45,21 +47,24 @@ class Song:
         if not self.is_loaded():
             self.load()
         
-        print("Analyzing: %s" % self.get_name())
-        self.analysis = Analyzer.analyze(self, *args)
+        Analyzer.analyze(self, *args)
 
-    def is_analyzed(self, attr=None):
-        if attr is None:
-            return self.analysis is not None
-        else:
-            return self.analysis is not None and attr in self.analysis
+    def is_analyzed(self, attr):
+        return attr in self.analysis
 
     def get_tempo(self):
-        if not self.is_analyzed(Analyzer.TEMPO):
-            self.analyze(Analyzer.TEMPO)
+        if not self.is_analyzed(Analyzer.AnalyzerEnums.TEMPO):
+            self.analyze(Analyzer.AnalyzerEnums.TEMPO)
         
-        return self.analysis[Analyzer.TEMPO]
+        return self.analysis[Analyzer.AnalyzerEnums.TEMPO]
+    
+    def get_beats(self):
+        if not self.is_analyzed(Analyzer.AnalyzerEnums.BEATS):
+            self.analyze(Analyzer.AnalyzerEnums.BEATS)
+        
+        return self.analysis[Analyzer.AnalyzerEnums.BEATS]
 
+    ### DOES NOT WORK RIGHT NOW THE SONG OBJECT IS COPIED INTO ANOTHER PROCESS AND THUS WE LOSE THE LOADED DATA ###
     @staticmethod
     def load_song(song):
         """

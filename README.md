@@ -1,17 +1,7 @@
 # MixList
 
-[mixlist](#mixlist)<br/>
-[proposal](#proposal)<br/>
-[scripts](#scripts)<br/>
+### Resources
 
-## mixlist
-
-Contains all of the source code for the MixList platform, can be used externally by importing the package `mixlist`
-
-## proposal
-
-Contains the markdown and .pdf version of our project proposal
-
-## scripts
-
-Some scripts that are run using elements of the MixList platform
+[LibROSA](https://librosa.github.io/librosa/)<br/>
+[Onset/Beat Detection Paper](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=1495485)<br/>
+[Beat Tracking Algorithm](http://www.ee.columbia.edu/~dpwe/pubs/Ellis07-beattrack.pdf)<br/>
