@@ -2,3 +2,4 @@ songs/
 songs.zip
 *.pdf
 __pycache__
+.vscode*
