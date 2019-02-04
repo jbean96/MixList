@@ -1,8 +1,7 @@
-from enum import Enum, auto, unique
+from enum import Enum, auto
 from typing import Any
 
 class Analysis:
-    @unique
     class Feature(Enum):
         BEATS = auto() # TODO: Something with beats to know it's a downbeat?
         DANCEABILITY = auto()
