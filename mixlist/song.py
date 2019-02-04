@@ -1,75 +1,47 @@
 import librosa
 import os
-from mixlist import util
-from mixlist.analyzer import Analyzer
+from mixlist import analyzer
 
 class Song:
+    SAMPLE_RATE = 44100 # used as sample rate for all songs    
+    RESAMPLE_METHOD = 'kaiser_best' # ['kaiser_best', 'kaiser_fast', 'scipy']
+
     def __init__(self, path):
-        # TODO: Potentially use "os" package to get full path to the song
-        self.path = path
-        self.samples = None
-        self.sample_rate = None
-        self.analysis = {}
+        self._path = os.path.abspath(path)
+        self._samples = None
+        self._analysis = None
+        
+        self._load()
+    
+    def _load(self):
+        print("Loading: %s" % self.get_name())
+        self._samples = librosa.load(self.path, sr=Song.SAMPLE_RATE, res_type=Song.RESAMPLE_METHOD)[0]
+
+    def _analyze(self):
+        self._analysis = Analyzer.analyze(self)
+
+    def get_samples(self):
+        """
+        Return the samples of the song
+        
+        @return: np.ndarray of song samples
+        """
+        return self._samples
     
     def get_name(self):
-        return os.path.basename(self.path)
+        """
+        Return the basename of the song (i.e. without the entire path)
+
+        @return: the basename of the song
+        """
+        return os.path.basename(self._path)
 
     def get_duration(self):
-        if not self.is_loaded():
-            self.load()
+        """
+        Gets the duration of the song
+
+        @return: the duration of the song
+        """
         return librosa.get_duration(self.samples, self.sample_rate)
 
-    def load(self):
-        if self.is_loaded():
-            print("Song %s already loaded..." % self.get_name())
-            return
-        
-        print("Loading: %s" % self.get_name())
-        self.samples, self.sample_rate = librosa.load(self.path, res_type=util.Globals.resample_method)
-
-    def is_loaded(self):
-        return self.samples is not None and self.sample_rate is not None
-    
-    def output(self, path):
-        if not self.is_loaded():
-            self.load()
-        
-        print("Outputting song to file: %s" % path)
-        librosa.output.write_wav(path, y=self.samples, sr=self.sample_rate)
-    
-    def analyze(self, *args):
-        """
-        Analyze the provided song and stores the analyzed attributes in self.analysis, if the song has not been loaded yet, it loads it as well
-
-        :param song: the song to analyze
-        :param *args: the attributes of the song to analyze, need to be defined enums, if none are provided then all attributes are analyzed
-        """
-        if not self.is_loaded():
-            self.load()
-        
-        Analyzer.analyze(self, *args)
-
-    def is_analyzed(self, attr):
-        return attr in self.analysis
-
-    def get_tempo(self):
-        if not self.is_analyzed(Analyzer.AnalyzerEnums.TEMPO):
-            self.analyze(Analyzer.AnalyzerEnums.TEMPO)
-        
-        return self.analysis[Analyzer.AnalyzerEnums.TEMPO]
-    
-    def get_beats(self):
-        if not self.is_analyzed(Analyzer.AnalyzerEnums.BEATS):
-            self.analyze(Analyzer.AnalyzerEnums.BEATS)
-        
-        return self.analysis[Analyzer.AnalyzerEnums.BEATS]
-
-    ### DOES NOT WORK RIGHT NOW THE SONG OBJECT IS COPIED INTO ANOTHER PROCESS AND THUS WE LOSE THE LOADED DATA ###
-    @staticmethod
-    def load_song(song):
-        """
-        Static method to load a song, needed to do multiprocess loading of songs in util.Methods.load_songs
-
-        :param song: the song to load
-        """
-        song.load()
+    def 

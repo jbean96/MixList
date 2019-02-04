@@ -1,17 +1,4 @@
-import multiprocessing
-import librosa
 from datetime import datetime
-from mixlist import song
-
-class Globals:
-    # Global resampling method to use: ['kaiser_best', 'kaiser_fast', 'scipy']
-    resample_method = 'kaiser_best'
-
-class Methods:
-    @staticmethod
-    def load_songs(songs):
-        with multiprocessing.Pool() as p:
-            p.map(song.Song.load_song, songs)
 
 class Timer:
     def __init__(self):
