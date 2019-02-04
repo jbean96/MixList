@@ -33,7 +33,7 @@ class Camelot:
     def get_mode(self) -> int:
         return self._mode
 
-    def get_adjacent_key(self) -> List['Camelot']:
+    def get_adjacent_keys(self) -> List['Camelot']:
         return [self.shift_up(), self.shift_down(), self.change_mode()]
 
 class Mode(Enum):
