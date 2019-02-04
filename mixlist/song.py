@@ -1,47 +1,32 @@
-import librosa
-import os
-from mixlist import analyzer
+from typing import Any
+
+from mixlist.analysis import Analysis
 
 class Song:
-    SAMPLE_RATE = 44100 # used as sample rate for all songs    
-    RESAMPLE_METHOD = 'kaiser_best' # ['kaiser_best', 'kaiser_fast', 'scipy']
+    def __init__(self, track_name):
+        self._track_name = track_name
+        self._analysis = Analysis()
 
-    def __init__(self, path):
-        self._path = os.path.abspath(path)
-        self._samples = None
-        self._analysis = None
-        
-        self._load()
-    
-    def _load(self):
-        print("Loading: %s" % self.get_name())
-        self._samples = librosa.load(self.path, sr=Song.SAMPLE_RATE, res_type=Song.RESAMPLE_METHOD)[0]
-
-    def _analyze(self):
-        self._analysis = Analyzer.analyze(self)
-
-    def get_samples(self):
-        """
-        Return the samples of the song
-        
-        @return: np.ndarray of song samples
-        """
-        return self._samples
-    
     def get_name(self):
         """
-        Return the basename of the song (i.e. without the entire path)
-
-        @return: the basename of the song
+        Returns the name of this song
         """
-        return os.path.basename(self._path)
+        return self._track_name
 
-    def get_duration(self):
+    def get_analysis(self):
+        return self._analysis
+
+    def set_analysis_feature(self, feature: Analysis.Feature, value: Any):
+        self._analysis.set_feature(feature, value)
+
+    def get_analysis_feature(self, feature: Analysis.Feature) -> Any:
+        return self._analysis.get_feature(feature)
+
+    def similarity(self, other: 'Song') -> float:
         """
-        Gets the duration of the song
+        Gets the similarity of this song to another
 
-        @return: the duration of the song
+        @param other: The Song to compare this song to
+        @return: A float representing the similarity of these two songs, higher value means higher similarity
         """
-        return librosa.get_duration(self.samples, self.sample_rate)
-
-    def 
+        pass
