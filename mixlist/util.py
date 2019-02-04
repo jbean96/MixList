@@ -8,6 +8,9 @@ CLIENT_SECRET = '608ad2aef74c494795d6e0d7927de725'
 client_credentials_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
+def ratio_comparison(val1: float, val2: float) -> float:
+    return abs(val2 - val1) / val1
+
 class TimerNotStartedException(Exception):
     pass
 
@@ -31,7 +34,7 @@ class Timer:
     def stop(self):
         if self.start_time is None:
             raise TimerNotStartedException()
-            
+
         end_time = datetime.now()
         print("End time: %s" % end_time)
         print("Elapsed time: %s" % (end_time - self.start_time))

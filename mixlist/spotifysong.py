@@ -1,11 +1,13 @@
 from typing import List, Dict, Any
 
-from mixlist.analysis import Analysis
-from mixlist import keys
-from mixlist import util
-from mixlist.song import Song
+from .analysis import Analysis
+from . import keys
+from . import util
+from .song import Song
 
 class SpotifySong(Song):
+    SEARCH_LIMIT = 20
+
     def __init__(self, track: str, artists: List[Dict[str, Any]], spid: str) -> 'SpotifySong':
         """
         Constructs a new SpotifySong
@@ -78,5 +80,5 @@ class SpotifySong(Song):
     
     @staticmethod
     def search_songs(song_name: str) -> List['SpotifySong']:
-        result = util.sp.search(q='track:%s' % song_name, type='track', limit=20)
+        result = util.sp.search(q='track:%s' % song_name, type='track', limit=SpotifySong.SEARCH_LIMIT)
         return list(map(lambda item: SpotifySong(item['name'], item['artists'], item['id']), result['tracks']['items']))

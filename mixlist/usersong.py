@@ -2,9 +2,9 @@ import librosa
 import os
 from typing import List, Dict, Tuple
 
-from mixlist.keys import Camelot
-from mixlist.analysis import Analysis
-from mixlist.song import Song
+from .keys import Camelot
+from .analysis import Analysis
+from .song import Song
 
 class UserSong(Song):
     SAMPLE_RATE = 44100 # used as sample rate for all songs    

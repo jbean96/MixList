@@ -9,6 +9,7 @@ class Analysis:
         ENERGY = auto()
         KEY = auto()
         LOUDNESS = auto()
+        NAME = auto()
         TEMPO = auto()
         TIME_SIGNATURE = auto()
         VALENCE = auto()

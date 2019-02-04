@@ -1,12 +1,15 @@
 from typing import Any, List
 from fuzzywuzzy import fuzz
 
-from mixlist.analysis import Analysis
+from .analysis import Analysis
+from . import util
 
 class Song:
     def __init__(self, track_name: str):
         self._track_name = track_name
         self._analysis = Analysis()
+
+        self.set_analysis_feature(Analysis.Feature.NAME, track_name)
 
     def get_name(self) -> str:
         """
@@ -32,7 +35,7 @@ class Song:
     def get_analysis_feature(self, feature: Analysis.Feature) -> Any:
         return self._analysis.get_feature(feature)
 
-    def similarity(self, other: 'Song', features: List[Analysis.Feature]) -> float:
+    def similarity(self, other: 'Song', features: List[Analysis.Feature]=None) -> float:
         """
         Gets the similarity of this song to another
 
@@ -40,6 +43,24 @@ class Song:
         @param features: The Analysis.Features to compare between the two songs
         @return: A float representing the similarity of these two songs, higher value means higher similarity
         """
-        name_comp = fuzz.ratio(self.get_name(), other.get_name()) / 100.0
+
+        comp_dict = {
+            Analysis.Feature.DURATION : { 'weight' : 1.0, 'method' : util.ratio_comparison },
+            Analysis.Feature.NAME : { 'weight' : 1.0, 'method' : lambda x, y: fuzz.ratio(x, y) / 100.0 },
+            Analysis.Feature.TEMPO : { 'weight' : 0.5, 'method' : util.ratio_comparison }
+        }
+
+        if features is None:
+            features = list(comp_dict.keys())
+
+        max_similarity = sum(map(lambda x: x['weight'], comp_dict.values()))
+
+        similarity = 0.0
+        for feature in features:
+            if feature not in comp_dict:
+                raise Exception('No comparison setup for feature: %s' % feature)
+
+            comp = comp_dict[feature]['method'](self.get_analysis_feature(feature), other.get_analysis_feature(feature))
+            similarity += comp * comp_dict[feature]['weight']
         
-        pass
+        return similarity / max_similarity
