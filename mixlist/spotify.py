@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 
-from .analysis import Analysis
+from .analysis import Feature
 from . import keys
 from . import util
 from .song import Song
@@ -41,7 +41,7 @@ class SpotifySong(Song):
         Analyzes this song with the Spotify API and stores it in the Analysis associated with this Song
         """
         sp_features = self._fetch_analysis_data()
-        self._set_analysis_data(sp_features)
+        self.set_analysis_data(sp_features)
 
     def _fetch_analysis_data(self) -> Dict[str, Any]:
         """
@@ -51,7 +51,7 @@ class SpotifySong(Song):
         """
         return util.sp.audio_features(self.get_id())[0]
 
-    def _set_analysis_data(self, sp_features: Dict[str, Any]):
+    def set_analysis_data(self, sp_features: Dict[str, Any]):
         """
         Retrieves the analysis data from the Spotify audio feature API and sets the features
         in the analysis object contained by this song
@@ -59,18 +59,18 @@ class SpotifySong(Song):
         @param sp_features: The Spotify AudioFeatures object returned from the API
         """
         analysis_feature_map = {
-            Analysis.Feature.DANCEABILITY : 'danceability',
-            Analysis.Feature.DURATION : 'duration_ms',
-            Analysis.Feature.ENERGY : 'energy',
-            Analysis.Feature.KEY : ('key', 'mode'),
-            Analysis.Feature.TEMPO : 'tempo',
-            Analysis.Feature.TIME_SIGNATURE : 'time_signature',
-            Analysis.Feature.LOUDNESS : 'loudness',
-            Analysis.Feature.VALENCE : 'valence'
+            Feature.DANCEABILITY : 'danceability',
+            Feature.DURATION : 'duration_ms',
+            Feature.ENERGY : 'energy',
+            Feature.KEY : ('key', 'mode'),
+            Feature.TEMPO : 'tempo',
+            Feature.TIME_SIGNATURE : 'time_signature',
+            Feature.LOUDNESS : 'loudness',
+            Feature.VALENCE : 'valence'
         }
 
         for analysis_feature in analysis_feature_map:
-            if analysis_feature == Analysis.Feature.KEY:
+            if analysis_feature == Feature.KEY:
                 musical_key = analysis_feature_map[analysis_feature][0]
                 mode = analysis_feature_map[analysis_feature][1]
                 self.set_analysis_feature(analysis_feature, keys.spotify_to_camelot(sp_features[musical_key], sp_features[mode]))
@@ -78,7 +78,6 @@ class SpotifySong(Song):
 
             self.set_analysis_feature(analysis_feature, sp_features[analysis_feature_map[analysis_feature]])
     
-    @staticmethod
-    def search_songs(song_name: str) -> List['SpotifySong']:
-        result = util.sp.search(q='track:%s' % song_name, type='track', limit=SpotifySong.SEARCH_LIMIT)
-        return list(map(lambda item: SpotifySong(item['name'], item['artists'], item['id']), result['tracks']['items']))
+def search_songs(song_name: str) -> List[SpotifySong]:
+    result = util.sp.search(q='track:%s' % song_name, type='track', limit=SpotifySong.SEARCH_LIMIT)
+    return list(map(lambda item: SpotifySong(item['name'], item['artists'], item['id']), result['tracks']['items']))

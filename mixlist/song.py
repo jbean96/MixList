@@ -13,9 +13,15 @@ class Song:
 
     def get_name(self) -> str:
         """
-        Returns the name of this song
+        @return: The name of the song
         """
         return self._track_name
+
+    def is_analyzed(self) -> bool:
+        """
+        @return: True if the Song has been analyzed, False otherwise
+        """
+        return self._analysis is not None
 
     def analyze(self):
         """
@@ -35,32 +41,37 @@ class Song:
     def get_analysis_feature(self, feature: Analysis.Feature) -> Any:
         return self._analysis.get_feature(feature)
 
-    def similarity(self, other: 'Song', features: List[Analysis.Feature]=None) -> float:
-        """
-        Gets the similarity of this song to another
 
-        @param other: The Song to compare this song to
-        @param features: The Analysis.Features to compare between the two songs
-        @return: A float representing the similarity of these two songs, higher value means higher similarity
-        """
+def similarity(song1: Song, song2: Song, features: List[Analysis.Feature]=None) -> float:
+    """
+    Gets the similarity of this song to another
 
-        comp_dict = {
-            Analysis.Feature.DURATION : { 'weight' : 1.0, 'method' : util.ratio_comparison },
-            Analysis.Feature.NAME : { 'weight' : 1.0, 'method' : lambda x, y: fuzz.ratio(x, y) / 100.0 },
-            Analysis.Feature.TEMPO : { 'weight' : 0.5, 'method' : util.ratio_comparison }
-        }
+    @param song1: The first song to compare, will do mathematcial ratios using this songs 
+        feature value as the denominator
+    @param song2: The second song to compare
+    @param features: The Analysis.Features to compare between the two songs, if None then
+        all possible comparison features will be used, default is None
+    @return: A float representing the similarity of these two songs, higher value means 
+        higher similarity
+    """
+    comp_dict = {
+        Analysis.Feature.DURATION : { 'weight' : 1.0, 'method' : util.ratio_comparison },
+        # Analysis.Feature.NAME : { 'weight' : 0.3, 'method' : lambda x, y: fuzz.ratio(x, y) / 100.0 },
+        Analysis.Feature.TEMPO : { 'weight' : 0.7, 'method' : util.ratio_comparison }
+    }
 
-        if features is None:
-            features = list(comp_dict.keys())
+    if features is None:
+        features = list(comp_dict.keys())
 
-        max_similarity = sum(map(lambda x: x['weight'], comp_dict.values()))
+    max_similarity = sum(map(lambda x: x['weight'], comp_dict.values()))
 
-        similarity = 0.0
-        for feature in features:
-            if feature not in comp_dict:
-                raise Exception('No comparison setup for feature: %s' % feature)
+    similarity = 0.0
+    for feature in features:
+        if feature not in comp_dict:
+            raise Exception('No comparison setup for feature: %s' % feature)
 
-            comp = comp_dict[feature]['method'](self.get_analysis_feature(feature), other.get_analysis_feature(feature))
-            similarity += comp * comp_dict[feature]['weight']
-        
-        return similarity / max_similarity
+        comp = comp_dict[feature]['method'](song1.get_analysis_feature(feature), 
+            song2.get_analysis_feature(feature))
+        similarity += comp * comp_dict[feature]['weight']
+    
+    return similarity / max_similarity
