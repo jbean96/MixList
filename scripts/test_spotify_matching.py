@@ -4,14 +4,14 @@ import sys
 # Since the mixlist package is in the directory above this one
 sys.path.append("..")
 
+from mixlist import spotify
 from mixlist.song import Song
 from mixlist.usersong import UserSong
-from mixlist.spotifysong import SpotifySong
 
 def main(args):
     user_song = UserSong(args.song)
     user_song.analyze()
-    sp_songs = SpotifySong.search_songs(user_song.get_name())
+    sp_songs = spotify.search_songs(user_song.get_name())
     for sp_song in sp_songs:
         sp_song.analyze()
         print("Spotify song name: %s" % sp_song.get_name())
