@@ -5,9 +5,9 @@ from . import util
 from .analysis import Feature
 from .song import Song
 
-class SpotifySong(Song):
-    SEARCH_LIMIT = 20
+QUERY_LIMIT = 20
 
+class SpotifySong(Song):
     def __init__(self, track: str, artists: List[Dict[str, Any]], spid: str) -> 'SpotifySong':
         """
         Constructs a new SpotifySong
@@ -77,14 +77,14 @@ class SpotifySong(Song):
                 continue
 
             self.set_analysis_feature(analysis_feature, sp_features[analysis_feature_map[analysis_feature]])
-    
-def search_songs(song_name: str, limit: int=SpotifySong.SEARCH_LIMIT) -> List[SpotifySong]:
+
+def search_songs(song_name: str, limit: int=QUERY_LIMIT) -> List[SpotifySong]:
     """
     Searches for the matching songs in the Spotify API and returns them as list of potential
     matches, searches just based on track name
 
     @param song_name: The name of the song to query in the API
-    @param limit: The max number of songs to return (defaults to SpotifySong.SEARCH_LIMIT)
+    @param limit: The max number of songs to return (defaults to SpotifySong.QUERY_LIMIT)
     @return: A list of SpotifySong objects corresponding to the returned songs from the query
     """
     result = util.sp.search(q='track:%s' % song_name, type='track', limit=limit)

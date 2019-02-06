@@ -1,5 +1,28 @@
 # MixList
 
+CSE 481I: Sound Design capstone project for Josh Bean, Jeremy Cruz and Gerard Gaimari
+
+## Updates
+
+Use this section to write about TODOs and other updates on your part of the project
+
+### Analyzer
+
+(2/5/19) Working on integrating the Spotify API to get metadata about songs and matching the correct song with the songs that the user wants to use in their mix. 
+
+**TODO**
+- [ ] Finish integrating Spotify matching
+- [ ] Add key detection on the user loaded song
+- [ ] Indicate which of the detected beats are downbeats with a boolean
+
+### Optimizer
+
+### Composer
+
+## Other
+
+Resources, papers, other things to note
+
 ### Resources
 
 [LibROSA](https://librosa.github.io/librosa/)<br/>
