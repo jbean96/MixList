@@ -1,15 +1,15 @@
 from typing import Any, List
 from fuzzywuzzy import fuzz
 
-from .analysis import Analysis
+from . import analysis
 from . import util
 
 class Song:
     def __init__(self, track_name: str):
         self._track_name = track_name
-        self._analysis = Analysis()
+        self._analysis = analysis.Analysis()
 
-        self.set_analysis_feature(Analysis.Feature.NAME, track_name)
+        self.set_analysis_feature(analysis.Feature.NAME, track_name)
 
     def get_name(self) -> str:
         """
@@ -29,35 +29,36 @@ class Song:
         """
         pass
 
-    def get_analysis(self) -> Analysis:
+    def get_analysis(self) -> analysis.Analysis:
         """
         @return: The Analysis object for this song
         """
         return self._analysis
 
-    def set_analysis_feature(self, feature: Analysis.Feature, value: Any):
+    def set_analysis_feature(self, feature: analysis.Feature, value: Any):
         self._analysis.set_feature(feature, value)
 
-    def get_analysis_feature(self, feature: Analysis.Feature) -> Any:
+    def get_analysis_feature(self, feature: analysis.Feature) -> Any:
         return self._analysis.get_feature(feature)
 
 
-def similarity(song1: Song, song2: Song, features: List[Analysis.Feature]=None) -> float:
+def similarity(song1: Song, song2: Song, features: List[analysis.Feature]=None) -> float:
     """
     Gets the similarity of this song to another
 
     @param song1: The first song to compare, will do mathematcial ratios using this songs 
         feature value as the denominator
     @param song2: The second song to compare
-    @param features: The Analysis.Features to compare between the two songs, if None then
+    @param features: The analysis.Features to compare between the two songs, if None then
         all possible comparison features will be used, default is None
     @return: A float representing the similarity of these two songs, higher value means 
         higher similarity
+    @raise: Exception if a specified feature isn't setup for comparison yet
     """
     comp_dict = {
-        Analysis.Feature.DURATION : { 'weight' : 1.0, 'method' : util.ratio_comparison },
-        # Analysis.Feature.NAME : { 'weight' : 0.3, 'method' : lambda x, y: fuzz.ratio(x, y) / 100.0 },
-        Analysis.Feature.TEMPO : { 'weight' : 0.7, 'method' : util.ratio_comparison }
+        analysis.Feature.DURATION : { 'weight' : 1.0, 'method' : lambda x, y: util.ratio_comparison(x, y, exp=1.5) },
+        # analysis.Feature.NAME : { 'weight' : 0.3, 'method' : lambda x, y: fuzz.ratio(x, y) / 100.0 },
+        analysis.Feature.TEMPO : { 'weight' : 0.7, 'method' : util.ratio_comparison }
     }
 
     if features is None:

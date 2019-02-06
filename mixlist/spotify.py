@@ -1,8 +1,8 @@
 from typing import List, Dict, Any
 
-from .analysis import Feature
 from . import keys
 from . import util
+from .analysis import Feature
 from .song import Song
 
 class SpotifySong(Song):
@@ -78,6 +78,14 @@ class SpotifySong(Song):
 
             self.set_analysis_feature(analysis_feature, sp_features[analysis_feature_map[analysis_feature]])
     
-def search_songs(song_name: str) -> List[SpotifySong]:
-    result = util.sp.search(q='track:%s' % song_name, type='track', limit=SpotifySong.SEARCH_LIMIT)
+def search_songs(song_name: str, limit: int=SpotifySong.SEARCH_LIMIT) -> List[SpotifySong]:
+    """
+    Searches for the matching songs in the Spotify API and returns them as list of potential
+    matches, searches just based on track name
+
+    @param song_name: The name of the song to query in the API
+    @param limit: The max number of songs to return (defaults to SpotifySong.SEARCH_LIMIT)
+    @return: A list of SpotifySong objects corresponding to the returned songs from the query
+    """
+    result = util.sp.search(q='track:%s' % song_name, type='track', limit=limit)
     return list(map(lambda item: SpotifySong(item['name'], item['artists'], item['id']), result['tracks']['items']))

@@ -18,7 +18,7 @@ class Feature(Enum):
         return feature in Feature.__members__.values()
 
 class Analysis:
-    def __init__(self) -> 'Analysis':
+    def __init__(self):
         self._features = {}
 
     def __str__(self) -> str:
@@ -30,6 +30,7 @@ class Analysis:
 
         @param feature: The Analysis.Feature to set
         @param value: The value to set for the feature
+        @raise: ValueError if the requested feature is not an Analysis.Feature Enum
         """
         if not Feature.is_feature(feature):
             raise ValueError("%s is not a valid Analysis.Feature" % str(feature))
@@ -41,7 +42,8 @@ class Analysis:
         Gets a specified Analysis.Feature from this Analysis, or None if it isn't an analyzed feature
 
         @param feature: The Analysis.Feature to return
-        @return: The requested Analysis.Feature or None if it isn't in the 
+        @return: The requested Analysis.Feature or None if it isn't in the analysis
+        @raise: ValueError if the requested feature is not an Analysis.Feature Enum 
         """
         if not Feature.is_feature(feature):
             raise ValueError("%s is not a valid Analysis.Feature" % str(feature))
