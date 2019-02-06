@@ -12,6 +12,7 @@ Use this section to write about TODOs and other updates on your part of the proj
 
 **TODO**
 - [ ] Finish integrating Spotify matching
+- [ ] Make matching and song loading run in parallel
 - [ ] Add key detection on the user loaded song
 - [ ] Indicate which of the detected beats are downbeats with a boolean
 
