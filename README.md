@@ -19,10 +19,12 @@ Use this section to write about TODOs and other updates on your part of the proj
 ### Optimizer
 
 ### Composer
-- composer class contains of a list of instructions and methods for carrying out instructions
+
+Composer class contains of a list of instructions and methods for carrying out instructions
+
 **TODO**
-finish implementing transition functions
-create instruction data structure from list of instructions
+- [ ] Finish implementing transition functions
+- [ ] Create instruction data structure from list of instructions
 
 ## Other
 
