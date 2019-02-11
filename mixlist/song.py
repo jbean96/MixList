@@ -1,75 +1,78 @@
-import librosa
-import os
-from mixlist import util
-from mixlist.analyzer import Analyzer
+from typing import Any, List
+from fuzzywuzzy import fuzz
+
+from . import analysis
+from . import util
 
 class Song:
-    def __init__(self, path):
-        # TODO: Potentially use "os" package to get full path to the song
-        self.path = path
-        self.samples = None
-        self.sample_rate = None
-        self.analysis = {}
-    
-    def get_name(self):
-        return os.path.basename(self.path)
+    def __init__(self, track_name: str):
+        self._track_name = track_name
+        self._analysis = analysis.Analysis()
 
-    def get_duration(self):
-        if not self.is_loaded():
-            self.load()
-        return librosa.get_duration(self.samples, self.sample_rate)
+        self.set_analysis_feature(analysis.Feature.NAME, track_name)
 
-    def load(self):
-        if self.is_loaded():
-            print("Song %s already loaded..." % self.get_name())
-            return
-        
-        print("Loading: %s" % self.get_name())
-        self.samples, self.sample_rate = librosa.load(self.path, res_type=util.Globals.resample_method)
-
-    def is_loaded(self):
-        return self.samples is not None and self.sample_rate is not None
-    
-    def output(self, path):
-        if not self.is_loaded():
-            self.load()
-        
-        print("Outputting song to file: %s" % path)
-        librosa.output.write_wav(path, y=self.samples, sr=self.sample_rate)
-    
-    def analyze(self, *args):
+    def get_name(self) -> str:
         """
-        Analyze the provided song and stores the analyzed attributes in self.analysis, if the song has not been loaded yet, it loads it as well
-
-        :param song: the song to analyze
-        :param *args: the attributes of the song to analyze, need to be defined enums, if none are provided then all attributes are analyzed
+        @return: The name of the song
         """
-        if not self.is_loaded():
-            self.load()
-        
-        Analyzer.analyze(self, *args)
+        return self._track_name
 
-    def is_analyzed(self, attr):
-        return attr in self.analysis
+    def is_analyzed(self) -> bool:
+        """
+        @return: True if the Song has been analyzed, False otherwise
+        """
+        return self._analysis is not None
 
-    def get_tempo(self):
-        if not self.is_analyzed(Analyzer.AnalyzerEnums.TEMPO):
-            self.analyze(Analyzer.AnalyzerEnums.TEMPO)
-        
-        return self.analysis[Analyzer.AnalyzerEnums.TEMPO]
+    def analyze(self):
+        """
+        Fills the analysis object for this Song
+        """
+        pass
+
+    def get_analysis(self) -> analysis.Analysis:
+        """
+        @return: The Analysis object for this song
+        """
+        return self._analysis
+
+    def set_analysis_feature(self, feature: analysis.Feature, value: Any):
+        self._analysis.set_feature(feature, value)
+
+    def get_analysis_feature(self, feature: analysis.Feature) -> Any:
+        return self._analysis.get_feature(feature)
+
+
+def similarity(song1: Song, song2: Song, features: List[analysis.Feature]=None) -> float:
+    """
+    Gets the similarity of this song to another
+
+    @param song1: The first song to compare, will do mathematcial ratios using this songs 
+        feature value as the denominator
+    @param song2: The second song to compare
+    @param features: The analysis.Features to compare between the two songs, if None then
+        all possible comparison features will be used, default is None
+    @return: A float representing the similarity of these two songs, higher value means 
+        higher similarity
+    @raise: Exception if a specified feature isn't setup for comparison yet
+    """
+    comp_dict = {
+        analysis.Feature.DURATION : { 'weight' : 1.0, 'method' : lambda x, y: util.ratio_comparison(x, y, exp=1.5) },
+        # analysis.Feature.NAME : { 'weight' : 0.3, 'method' : lambda x, y: fuzz.ratio(x, y) / 100.0 },
+        analysis.Feature.TEMPO : { 'weight' : 0.7, 'method' : util.ratio_comparison }
+    }
+
+    if features is None:
+        features = list(comp_dict.keys())
+
+    max_similarity = sum(map(lambda x: x['weight'], comp_dict.values()))
+
+    similarity = 0.0
+    for feature in features:
+        if feature not in comp_dict:
+            raise Exception('No comparison setup for feature: %s' % feature)
+
+        comp = comp_dict[feature]['method'](song1.get_analysis_feature(feature), 
+            song2.get_analysis_feature(feature))
+        similarity += comp * comp_dict[feature]['weight']
     
-    def get_beats(self):
-        if not self.is_analyzed(Analyzer.AnalyzerEnums.BEATS):
-            self.analyze(Analyzer.AnalyzerEnums.BEATS)
-        
-        return self.analysis[Analyzer.AnalyzerEnums.BEATS]
-
-    ### DOES NOT WORK RIGHT NOW THE SONG OBJECT IS COPIED INTO ANOTHER PROCESS AND THUS WE LOSE THE LOADED DATA ###
-    @staticmethod
-    def load_song(song):
-        """
-        Static method to load a song, needed to do multiprocess loading of songs in util.Methods.load_songs
-
-        :param song: the song to load
-        """
-        song.load()
+    return similarity / max_similarity
