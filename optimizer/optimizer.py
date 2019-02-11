@@ -1,6 +1,8 @@
 class optimizer():
     """ 
     Computes optimal mixtape based on given songs, transitions, style and goals.
+    version 1: consider only song sequences == 2
+    version 2: consider song sequences >= 2 or potentially entire "goal" sections
     """
     def __init__(self, songs, transitions, style, goals):
         """
