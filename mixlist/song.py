@@ -1,5 +1,6 @@
-from typing import Any, List
+from enum import auto, Enum
 from fuzzywuzzy import fuzz
+from typing import Any, List
 
 from . import analysis
 from . import util

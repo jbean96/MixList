@@ -5,7 +5,7 @@ import sys
 sys.path.append("..")
 
 from mixlist import spotify
-from mixlist.song import Song
+from mixlist import song
 from mixlist.usersong import UserSong
 
 def main(args):
@@ -16,7 +16,7 @@ def main(args):
         sp_song.analyze()
         print("Spotify song name: %s" % sp_song.get_name())
         print("\tSpotify ID: %s" % sp_song.get_id())
-        print("\tSimilarity: %f\n" % Song.similarity(user_song, sp_song))
+        print("\tSimilarity: %f\n" % song.similarity(user_song, sp_song))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Test Spotify song matching")

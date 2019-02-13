@@ -16,6 +16,9 @@ Use this section to write about TODOs and other updates on your part of the proj
 - [ ] Add key detection on the user loaded song
 - [ ] Indicate which of the detected beats are downbeats with a boolean
 
+**NOTES**
+[Downbeat Detection](https://www.eecs.qmul.ac.uk/~markp/2006/DaviesPlumbley06-eusipco.pdf)
+
 ### Optimizer
 
 ### Composer

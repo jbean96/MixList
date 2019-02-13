@@ -28,7 +28,7 @@ def _get_matching_songs(user_song: UserSong, num_songs: int) -> List[spotify.Spo
     # separate queries
     sp_features = util.sp.audio_features(tracks=map(lambda x: x.get_id(), sp_songs))
     # Map the returned audio features back to the respective SpotifySong
-    map(lambda index, sp_song: sp_song.set_analysis_data(sp_features[index]))
+    map(lambda index, sp_song: sp_song.set_analysis_data(sp_features[index]), sp_songs)
     return sp_songs
 
 def _score_matching_songs(user_song: UserSong, 
@@ -42,17 +42,17 @@ def _score_matching_songs(user_song: UserSong,
     @return: A list of tuples with the SpotifySong as the 0 index and the similarity score between
         that song and user_song in the 1 index
     """
+    # The user song must be analyzed to compare with the spotify songs
     if not user_song.is_analyzed():
         user_song.analyze()
     
     return list(map(lambda sp_song: (sp_song, song.similarity(user_song, sp_song))))
 
-def _pick_closest_song(user_song: UserSong, sp_songs: List[Tuple(spotify.SpotifySong, float)], 
+def _pick_closest_song(sp_songs: List[Tuple(spotify.SpotifySong, float)], 
     max_thresh: float, min_thresh: float, num_songs: int) -> spotify.SpotifySong:
     """
     Picks the "closest" song to the user loaded song from a list of scored SpotifySong objects
 
-    @param user_song: The user loaded song to compare to
     @param sp_songs: A list of scored SpotifySongs which should be tuples with the SpotifySong
         in the 0 index and the similarity score in the 1 index
     @param max_thresh: The threshold to compare the first num_songs, returns the first one that 
@@ -69,11 +69,16 @@ def _pick_closest_song(user_song: UserSong, sp_songs: List[Tuple(spotify.Spotify
     if max_thresh <= min_thresh:
         raise ValueError("max_thresh must be > min_thresh")
 
+    # Look at the first num_songs songs, if any have a similarity greater than the max_thresh
+    # return that song; assume that the songs the users want to mix are the most popular and so
+    # use the ones returned first
     for i in range(min(num_songs, len(sp_songs))):
         if sp_songs[i][1] > max_thresh:
             return sp_songs[i][0]
     
+    # Otherwise get the song with the maximum similarity from the scored song list
     best_tup = max(sp_songs, key=lambda x: x[1])
+    # If it's less than min_thresh then we don't consider it a match and return nothing
     if best_tup[1] <= min_thresh:
         return None
     
@@ -105,4 +110,11 @@ def match_song(user_song: UserSong, max_thresh: float=MAX_THRESHOLD,
 
     sp_songs = _get_matching_songs(user_song, query_limit)
     scored_songs = _score_matching_songs(user_song, sp_songs)
-    return _pick_closest_song(user_song, scored_songs, max_thresh, min_thresh, num_songs)
+    return _pick_closest_song(scored_songs, max_thresh, min_thresh, num_songs)
+
+def merge_song(dest_song: song.Song, other_song: song.Song):
+    unanalyzed_features = dest_song.get_analysis.get_unanalyzed_features()
+    for uf in unanalyzed_features:
+        other_feature_val = other_song.get_analysis_feature(uf)
+        if other_feature_val is not None:
+            dest_song[uf] = other_feature_val

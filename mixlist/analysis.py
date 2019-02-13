@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Any
+from typing import Any, List
 
 class Feature(Enum):
     BEATS = auto() # TODO: Something with beats to know it's a downbeat?
@@ -13,9 +13,8 @@ class Feature(Enum):
     TIME_SIGNATURE = auto()
     VALENCE = auto()
 
-    @staticmethod
-    def is_feature(feature: 'Feature'):
-        return feature in Feature.__members__.values()
+def is_feature(feature: Any) -> bool:
+    return feature in Feature.__members__.values()
 
 class Analysis:
     def __init__(self):
@@ -23,6 +22,18 @@ class Analysis:
 
     def __str__(self) -> str:
         return str(self._features)
+
+    def get_unanalyzed_features(self) -> List[Feature]:
+        """
+        Returns a List of unanalyzed features for this Analysis object
+
+        @return: A List of the Features Enums that aren't currently analyzed for this object
+        """
+        unanalyzed_features = []
+        for f in Feature:
+            if f not in self._features:
+                unanalyzed_features.append(f)
+        return unanalyzed_features
     
     def set_feature(self, feature: Feature, value: Any):
         """
@@ -52,3 +63,28 @@ class Analysis:
             return None
 
         return self._features[feature]
+
+class Beat:
+    class DownBeatAnalysis(Enum):
+        NAIVE = auto()
+    
+    #INDEX_VALUE = 'time' # ['frames', 'samples', 'time']
+    INDEX_VALUE = 'samples'
+    DOWNBEAT_ANALYSIS = DownBeatAnalysis.NAIVE
+
+    def __init__(self, index: float, is_downbeat: bool):
+        self.index = index
+        self.is_downbeat = is_downbeat
+
+def annotate_downbeats(beats: List[Beat], time_signature: int) -> List[Beat]:
+    new_beats = []
+    if Beat.DOWNBEAT_ANALYSIS == Beat.DownBeatAnalysis.NAIVE:
+        for (index, beat) in enumerate(beats):
+            if index % time_signature == 0:
+                new_beat = Beat(beat.index, True)
+            else:
+                new_beat = Beat(beat.index, False)
+            new_beats.append(new_beat)
+    else:
+        raise NotImplementedError("Only naive downbeat analysis is implemented thus far")
+    return new_beats
