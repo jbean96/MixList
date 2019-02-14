@@ -13,7 +13,7 @@ class Feature(Enum):
     TIME_SIGNATURE = auto()
     VALENCE = auto()
 
-def is_feature(feature: Any) -> bool:
+def is_feature(feature: Feature) -> bool:
     return feature in Feature.__members__.values()
 
 class Analysis:
@@ -43,8 +43,8 @@ class Analysis:
         @param value: The value to set for the feature
         @raise: ValueError if the requested feature is not an Analysis.Feature Enum
         """
-        if not Feature.is_feature(feature):
-            raise ValueError("%s is not a valid Analysis.Feature" % str(feature))
+        if not is_feature(feature):
+            raise ValueError("%s is not a valid Feature" % str(feature))
 
         self._features[feature] = value
 
@@ -56,8 +56,8 @@ class Analysis:
         @return: The requested Analysis.Feature or None if it isn't in the analysis
         @raise: ValueError if the requested feature is not an Analysis.Feature Enum 
         """
-        if not Feature.is_feature(feature):
-            raise ValueError("%s is not a valid Analysis.Feature" % str(feature))
+        if not is_feature(feature):
+            raise ValueError("%s is not a valid Feature" % str(feature))
 
         if feature not in self._features:
             return None

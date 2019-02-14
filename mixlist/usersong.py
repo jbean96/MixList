@@ -47,13 +47,6 @@ class UserSong(Song):
         # song.set_analysis_feature(analysis.Feature.BEATS, analysis.annotate_downbeats(beats, TIME_SIGNATURE_FROM_SPOTIFY))
 
     @staticmethod
-    def _annotate_downbeats(song: 'UserSong', time_signature: int):
-        """
-
-        """
-        pass
-
-    @staticmethod
     def _analyze_beats(song: 'UserSong') -> Tuple[float, List[analysis.Beat]]:
         """
         Analyzes the tempo and the beats of this song and returns them as a tuple
