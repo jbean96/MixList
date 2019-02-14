@@ -27,12 +27,14 @@ def _get_matching_songs(user_song: UserSong, num_songs: int) -> List[spotify.Spo
     # Queries the Spotify API with a batch of the songs instead of len(sp_songs)
     # separate queries
     sp_features = util.sp.audio_features(tracks=map(lambda x: x.get_id(), sp_songs))
+    def _lambda_func(sp_song, sp_feature):
+        sp_song.set_analysis_data(sp_feature)
+        return sp_song
     # Map the returned audio features back to the respective SpotifySong
-    map(lambda index, sp_song: sp_song.set_analysis_data(sp_features[index]), sp_songs)
-    return sp_songs
+    return list(map(_lambda_func, sp_songs, sp_features))
 
 def _score_matching_songs(user_song: UserSong, 
-    matches: List[spotify.SpotifySong]) -> List[Tuple(spotify.SpotifySong, float)]:
+    matches: List[spotify.SpotifySong]) -> List[Tuple[spotify.SpotifySong, float]]:
     """
     Scores a list of SpotifySong objects by calculating their similarity to the user loaded song
 
@@ -43,12 +45,15 @@ def _score_matching_songs(user_song: UserSong,
         that song and user_song in the 1 index
     """
     # The user song must be analyzed to compare with the spotify songs
-    if not user_song.is_analyzed():
-        user_song.analyze()
+    # TODO: Broken right now because is_analyzed just looks to see if the analysis object is
+    # there, if we change to assume that songs are always analyzed this won't be an issue
+    # if not user_song.is_analyzed():
+    #     user_song.analyze()
+    user_song.analyze()
     
-    return list(map(lambda sp_song: (sp_song, song.similarity(user_song, sp_song))))
+    return list(map(lambda sp_song: (sp_song, song.similarity(user_song, sp_song)), matches))
 
-def _pick_closest_song(sp_songs: List[Tuple(spotify.SpotifySong, float)], 
+def _pick_closest_song(sp_songs: List[Tuple[spotify.SpotifySong, float]], 
     max_thresh: float, min_thresh: float, num_songs: int) -> spotify.SpotifySong:
     """
     Picks the "closest" song to the user loaded song from a list of scored SpotifySong objects
@@ -112,9 +117,16 @@ def match_song(user_song: UserSong, max_thresh: float=MAX_THRESHOLD,
     scored_songs = _score_matching_songs(user_song, sp_songs)
     return _pick_closest_song(scored_songs, max_thresh, min_thresh, num_songs)
 
-def merge_song(dest_song: song.Song, other_song: song.Song):
-    unanalyzed_features = dest_song.get_analysis.get_unanalyzed_features()
+def merge_song_analysis(dest_song: song.Song, other_song: song.Song):
+    """
+    Merges one song's missing analysis features into another, modifies the analysis object
+    of the dest_song argument in place
+
+    @param dest_song: The song to merge anlalysis features into
+    @param other_song: The song to get missing analysis features from
+    """
+    unanalyzed_features = dest_song.get_analysis().get_unanalyzed_features()
     for uf in unanalyzed_features:
         other_feature_val = other_song.get_analysis_feature(uf)
         if other_feature_val is not None:
-            dest_song[uf] = other_feature_val
+            dest_song.set_analysis_feature(uf, other_feature_val)
