@@ -1,5 +1,7 @@
-from typing import Any, List
+from enum import auto, Enum
 from fuzzywuzzy import fuzz
+from typing import Any, List
+import pdb
 
 from . import analysis
 from . import util
@@ -41,7 +43,6 @@ class Song:
     def get_analysis_feature(self, feature: analysis.Feature) -> Any:
         return self._analysis.get_feature(feature)
 
-
 def similarity(song1: Song, song2: Song, features: List[analysis.Feature]=None) -> float:
     """
     Gets the similarity of this song to another
@@ -56,7 +57,7 @@ def similarity(song1: Song, song2: Song, features: List[analysis.Feature]=None) 
     @raise: Exception if a specified feature isn't setup for comparison yet
     """
     comp_dict = {
-        analysis.Feature.DURATION : { 'weight' : 1.0, 'method' : lambda x, y: util.ratio_comparison(x, y, exp=1.5) },
+        analysis.Feature.DURATION : { 'weight' : 1.0, 'method' : lambda x, y: util.ratio_comparison(x, y, exp=1.1) },
         # analysis.Feature.NAME : { 'weight' : 0.3, 'method' : lambda x, y: fuzz.ratio(x, y) / 100.0 },
         analysis.Feature.TEMPO : { 'weight' : 0.7, 'method' : util.ratio_comparison }
     }

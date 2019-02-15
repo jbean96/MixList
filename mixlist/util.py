@@ -24,7 +24,7 @@ def ratio_comparison(val1: float, val2: float, exp: float=1.0) -> float:
     if exp <= 0.0:
         raise ValueError("Parameter exp must be > 0.0, specified value is: %f" % exp)
 
-    return 1.0 - (max((abs(val2 - val1) ** exp), val1) / val1)
+    return 1.0 - (min((abs(val2 - val1) ** exp), val1) / val1 * 1.0)
 
 class TimerNotStartedException(Exception):
     pass

@@ -36,15 +36,19 @@ class Camelot:
     def get_adjacent_keys(self) -> List['Camelot']:
         return [self.shift_up(), self.shift_down(), self.change_mode()]
 
+    def __hash__(self):
+        return hash((self._key, self._mode))
+
+    def __eq__(self, other):
+        if type(other) != type(self):
+            return False
+        return self._key == other._key and self._mode == other._mode
+
 class Mode(Enum):
     MINOR = 0
     MAJOR = 1
 
-SPOTIFY_MODE = {
-    0 : Mode.MINOR,
-    1 : Mode.MAJOR
-}
-
+# Internal key representation
 class Key(Enum):
     NO_KEY =  -1
     C =       0
@@ -65,7 +69,13 @@ class Key(Enum):
     B_FLAT =  10
     B =       11
 
-# Spotify value -> Key enum
+# Spotify value -> Internal mode
+SPOTIFY_MODE = {
+    0 : Mode.MINOR,
+    1 : Mode.MAJOR
+}
+
+# Spotify value -> Internal key
 SPOTIFY_KEYS = {
     -1 : Key.NO_KEY,
     0  : Key.C,
@@ -82,6 +92,7 @@ SPOTIFY_KEYS = {
     11 : Key.B
 }
 
+# Mapping of internal key representation (Key, Mode) to the corresponding Camelot Key
 CAMELOT_KEYS = {
     # Mode.MINOR keys
     (Key.A_FLAT, Mode.MINOR)  : Camelot(1, 'A'),

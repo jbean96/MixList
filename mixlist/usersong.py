@@ -2,17 +2,16 @@ import librosa
 import os
 from typing import List, Dict, Tuple
 
-from .keys import Camelot
-from .analysis import Analysis
+from . import analysis
 from .song import Song
+from .keys import Camelot
 
 class UserSong(Song):
     SAMPLE_RATE = 44100 # used as sample rate for all songs    
     RESAMPLE_METHOD = 'kaiser_best' # ['kaiser_best', 'kaiser_fast', 'scipy']
     EXTENSIONS = ['.mp3', '.wav'] # can add more if needed
-    BEAT_VALUE = 'time' # ['frames', 'samples', 'time']
 
-    def __init__(self, path):
+    def __init__(self, path: str, analyze_on_init: bool=False):
         self._path = os.path.abspath(path) # full file path to song on computer
         name = os.path.basename(self._path) # name with extension
         extension = name[name.rfind('.'):]
@@ -24,6 +23,8 @@ class UserSong(Song):
 
         self._samples = None
         self._load()
+        if analyze_on_init:
+            self.analyze()
     
     def _load(self):
         self._samples = librosa.load(self._path, sr=UserSong.SAMPLE_RATE, res_type=UserSong.RESAMPLE_METHOD)[0]
@@ -36,19 +37,25 @@ class UserSong(Song):
             raise ValueError('Song must be loaded before analysis')
 
         tempo, beats = UserSong._analyze_beats(self)
-        self.set_analysis_feature(Analysis.Feature.TEMPO, tempo)
-        self.set_analysis_feature(Analysis.Feature.BEATS, beats)
-        self.set_analysis_feature(Analysis.Feature.DURATION, UserSong._analyze_duration(self))
+        # PRE-MATCHING ANALYSIS
+        self.set_analysis_feature(analysis.Feature.TEMPO, tempo)
+        self.set_analysis_feature(analysis.Feature.BEATS, beats)
+        self.set_analysis_feature(analysis.Feature.DURATION, UserSong._analyze_duration(self))
         # song.set_analysis_feature(Analysis.Feature.KEY, Analyzer._analyze_key(song))
+        # TODO: MATCH WITH SPOTIFY SONG
+        # TODO: MERGE ANALYSIS FEATURES WITH SPOTIFY SONG
+        # song.set_analysis_feature(analysis.Feature.BEATS, analysis.annotate_downbeats(beats, TIME_SIGNATURE_FROM_SPOTIFY))
 
     @staticmethod
-    def _analyze_beats(song: 'UserSong') -> Tuple[float, List[float]]:
+    def _analyze_beats(song: 'UserSong') -> Tuple[float, List[analysis.Beat]]:
         """
         Analyzes the tempo and the beats of this song and returns them as a tuple
 
         @return: A Tuple of (tempo, beats)
         """
-        tempo, beats = librosa.beat.beat_track(song.get_samples(), sr=UserSong.SAMPLE_RATE, units=UserSong.BEAT_VALUE)
+        tempo, beats = librosa.beat.beat_track(song.get_samples(), sr=UserSong.SAMPLE_RATE, units=analysis.Beat.INDEX_VALUE)
+        # Before getting time signature from spotify song, we assume 
+        beats = list(map(lambda x: analysis.Beat(x, False), beats))
         return (tempo, beats)
 
     @staticmethod
