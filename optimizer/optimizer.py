@@ -1,3 +1,5 @@
+from song_vector import song_vector
+
 class optimizer():
     """ 
     Computes optimal mixtape based on given songs, transitions, style and goals.
@@ -11,7 +13,12 @@ class optimizer():
         Keyword args:
         """
         # check arguments are valid
-        self.songs = songs
+        self.songs = list()
+
+        # loop through given songs and create song vectors
+        for s in songs:
+            self.songs.append(song_vector(s)) 
+
         self.transitions = transitions
         self.style = style
         self.goals = goals
@@ -57,9 +64,9 @@ class optimizer():
 
         Keyword args:        
         """
+        # choose the first song (closest to initial goal, based on song comparison)
         # while more songs && more goals
             # consider state
-            # choose the first song (closest to initial goal)
             # consider possibilities
                 # all songs --> compare to current --> results_1
                 # results_1 --> progress to goal threshold --> r_2 
@@ -76,7 +83,6 @@ class optimizer():
                 # time to next goal
             # check goal progress
                 # determine if moving to next goal
-
         return NotImplementedError()
 
 
