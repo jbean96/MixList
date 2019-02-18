@@ -36,6 +36,13 @@ class Song:
         @return: The Analysis object for this song
         """
         return self._analysis
+    
+    def set_analysis(self, analysis_obj: analysis.Analysis):
+        """
+        Sets the analysis for this song to a externally created Analysis object;
+        should only be used for testing
+        """
+        self._analysis = analysis_obj
 
     def set_analysis_feature(self, feature: analysis.Feature, value: Any):
         self._analysis.set_feature(feature, value)
@@ -59,7 +66,7 @@ def similarity(song1: Song, song2: Song, features: List[analysis.Feature]=None) 
     comp_dict = {
         analysis.Feature.DURATION : { 'weight' : 1.0, 'method' : lambda x, y: util.ratio_comparison(x, y, exp=1.1) },
         # analysis.Feature.NAME : { 'weight' : 0.3, 'method' : lambda x, y: fuzz.ratio(x, y) / 100.0 },
-        analysis.Feature.TEMPO : { 'weight' : 0.7, 'method' : util.ratio_comparison }
+        analysis.Feature.TEMPO : { 'weight' : 0.7, 'method' : lambda x, y: util.ratio_comparison(x, y, exp=1.2) }
     }
 
     if features is None:

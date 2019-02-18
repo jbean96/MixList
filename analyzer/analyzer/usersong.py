@@ -53,7 +53,7 @@ class UserSong(Song):
         Gets the closest matching song from the Spotify API and merges it into this song's
         analysis, if there is no matching Spotify song, the UserSong is unchanged
         """
-        sp_song = matcher.match_song(self)
+        sp_song = matcher.match_song(self)[0]
         if sp_song is not None:
             matcher.merge_song_analysis(self, sp_song)
 

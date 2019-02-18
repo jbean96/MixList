@@ -1,6 +1,7 @@
 import librosa
+import pickle
 from enum import Enum, auto
-from typing import Any, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from . import keys
 
@@ -72,6 +73,12 @@ class Analysis:
             return None
 
         return self._features[feature]
+
+def from_file(file_path: str) -> Analysis:
+    with open(file_path, "rb") as in_file:
+        new_analysis = pickle.loads(in_file.read())
+        in_file.close()
+        return new_analysis
 
 class Beat:
     class DownBeatAnalysis(Enum):

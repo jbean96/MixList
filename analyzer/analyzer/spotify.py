@@ -8,7 +8,7 @@ from .song import Song
 QUERY_LIMIT = 20
 
 class SpotifySong(Song):
-    def __init__(self, track: str, artists: List[Dict[str, Any]], spid: str) -> 'SpotifySong':
+    def __init__(self, track: str, artists: List[Dict[str, Any]], spid: str):
         """
         Constructs a new SpotifySong
 

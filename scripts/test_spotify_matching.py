@@ -4,20 +4,20 @@ import sys
 # Since the mixlist package is in the directory above this one
 sys.path.append("..")
 
-from mixlist import spotify
-from mixlist import song
-from mixlist.usersong import UserSong
-from mixlist import matcher
+from analyzer.analyzer import spotify
+from analyzer.analyzer import song
+from analyzer.analyzer.usersong import UserSong
+from analyzer.analyzer import matcher
 
 def main(args):
     user_song = UserSong(args.song)
     print("User song loaded...")
     print("Matching from Spotify.")
-    sp_song = matcher.match_song(user_song)
+    sp_song = matcher.match_song(user_song)[0]
     if sp_song is not None:
         print("Found match!")
         matcher.merge_song_analysis(user_song, sp_song)
-        print(user_song.get_analysis())
+        print(sp_song.get_id())
     else:
         print("No matching songs found")
 

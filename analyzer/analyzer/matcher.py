@@ -6,15 +6,15 @@ from . import song
 
 # A threshold can be specified such that if the first returned song in the first NUM_SONGS songs
 # has a similarity value > MAX_THRESHOLD it will be chosen as the matching song
-MAX_THRESHOLD = 0.9
+MAX_THRESHOLD = 0.975
 # A minimum threshold can be specified such that if no song has a similarity score greater than
 # the minimum threshold we don't consider there to be a matching song in the Spotify API
-MIN_THRESHOLD = 0.5
+MIN_THRESHOLD = 0.95
 # Specifies how many of the first songs to check to see if they are above the threshold to
 # automatically select that as the matching song, will otherwise use the max song similarity
 NUM_SONGS = 3
 
-def _get_matching_songs(user_song: song.Song, num_songs: int) -> List[spotify.SpotifySong]:
+def _get_matching_songs(user_song: song.Song, num_songs: int=spotify.QUERY_LIMIT) -> List[spotify.SpotifySong]:
     """
     Gets the matching songs for a song from the Spotify API
 
@@ -53,7 +53,7 @@ def _score_matching_songs(user_song: song.Song,
     return list(map(lambda sp_song: (sp_song, song.similarity(user_song, sp_song)), matches))
 
 def _pick_closest_song(sp_songs: List[Tuple[spotify.SpotifySong, float]], 
-    max_thresh: float, min_thresh: float, num_songs: int) -> spotify.SpotifySong:
+    max_thresh: float, min_thresh: float, num_songs: int) -> Tuple[spotify.SpotifySong, float]:
     """
     Picks the "closest" song to the user loaded song from a list of scored SpotifySong objects
 
@@ -78,19 +78,19 @@ def _pick_closest_song(sp_songs: List[Tuple[spotify.SpotifySong, float]],
     # use the ones returned first
     for i in range(min(num_songs, len(sp_songs))):
         if sp_songs[i][1] > max_thresh:
-            return sp_songs[i][0]
+            return sp_songs[i]
     
     # Otherwise get the song with the maximum similarity from the scored song list
     best_tup = max(sp_songs, key=lambda x: x[1])
     # If it's less than min_thresh then we don't consider it a match and return nothing
     if best_tup[1] <= min_thresh:
         return None
-    
-    return best_tup[0]
+
+    return best_tup
 
 def match_song(user_song: song.Song, max_thresh: float=MAX_THRESHOLD, 
     min_thresh: float=MIN_THRESHOLD, num_songs: int=NUM_SONGS, 
-    query_limit: int=spotify.QUERY_LIMIT) -> spotify.SpotifySong:
+    query_limit: int=spotify.QUERY_LIMIT) -> Tuple[spotify.SpotifySong, float]:
     """
     Matches a provided user loaded song to a song from the Spotify library
 
