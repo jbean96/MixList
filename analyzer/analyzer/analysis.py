@@ -37,6 +37,12 @@ class Analysis:
             if f not in self._features:
                 unanalyzed_features.append(f)
         return unanalyzed_features
+
+    def is_analyzed(self, feature: Feature) -> bool:
+        """
+        @return: True if the feature has been analyzed
+        """
+        return feature in self._features
     
     def set_feature(self, feature: Feature, value: Any):
         """
@@ -75,7 +81,7 @@ class Beat:
     INDEX_VALUE = 'samples'
     DOWNBEAT_ANALYSIS = DownBeatAnalysis.NAIVE
 
-    def __init__(self, index: float, is_downbeat: bool):
+    def __init__(self, index: float, is_downbeat: bool=False):
         self.index = index
         self.is_downbeat = is_downbeat
 

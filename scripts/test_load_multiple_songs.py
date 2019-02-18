@@ -4,10 +4,7 @@ import sys
 # Since the mixlist package is in the directory above this one
 sys.path.append("..")
 
-from mixlist import spotify
-from mixlist import song
-from mixlist import usersong
-from mixlist import matcher
+from analyzer.analyzer import usersong
 
 def main(args):
     songs = usersong.load_songs(args.songs)

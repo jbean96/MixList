@@ -19,11 +19,11 @@ class Song:
         """
         return self._track_name
 
-    def is_analyzed(self) -> bool:
+    def is_analyzed(self, feature: analysis.Feature) -> bool:
         """
         @return: True if the Song has been analyzed, False otherwise
         """
-        return self._analysis is not None
+        return self._analysis is not None and self._analysis.is_analyzed(feature)
 
     def analyze(self):
         """
