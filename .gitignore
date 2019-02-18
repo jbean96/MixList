@@ -1,5 +1,7 @@
 songs/
 songs.zip
 *.pdf
+*.pyc
+*.xml
 __pycache__
 .vscode*

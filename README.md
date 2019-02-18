@@ -24,10 +24,12 @@ Use this section to write about TODOs and other updates on your part of the proj
 ### Composer
 
 Composer class contains of a list of instructions and methods for carrying out instructions
+(2/14/19) - Contact Audacity regarding float support for SelectTime command
 
 **TODO**
-- [ ] Finish implementing transition functions
-- [ ] Create instruction data structure from list of instructions
+- [ ] Finish implementing effects
+- [ ] Fix bugs regarding SelectTime
+- [ ] Converting Optimizer output from samples to timestamps 
 
 ## Other
 
