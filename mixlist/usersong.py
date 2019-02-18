@@ -1,13 +1,16 @@
 import librosa
 import os
+from multiprocessing import Pool
 from typing import List, Dict, Tuple
 
 from . import analysis
+from . import matcher
 from .song import Song
 from .keys import Camelot
 
 class UserSong(Song):
-    SAMPLE_RATE = 44100 # used as sample rate for all songs    
+    DEFAULT_TIME_SIGNATURE = 4
+    SAMPLE_RATE = 44100 # used as sample rate for all songs   
     RESAMPLE_METHOD = 'kaiser_best' # ['kaiser_best', 'kaiser_fast', 'scipy']
     EXTENSIONS = ['.mp3', '.wav'] # can add more if needed
 
@@ -25,6 +28,7 @@ class UserSong(Song):
         self._load()
         if analyze_on_init:
             self.analyze()
+            self.analyze_spotify()
     
     def _load(self):
         self._samples = librosa.load(self._path, sr=UserSong.SAMPLE_RATE, res_type=UserSong.RESAMPLE_METHOD)[0]
@@ -36,42 +40,28 @@ class UserSong(Song):
         if self._samples is None:
             raise ValueError('Song must be loaded before analysis')
 
-        tempo, beats = UserSong._analyze_beats(self)
-        # PRE-MATCHING ANALYSIS
+        # Pre-matching analysis
+        tempo, beats = analysis.analyze_beats(self._samples, UserSong.SAMPLE_RATE)
         self.set_analysis_feature(analysis.Feature.TEMPO, tempo)
-        self.set_analysis_feature(analysis.Feature.BEATS, beats)
-        self.set_analysis_feature(analysis.Feature.DURATION, UserSong._analyze_duration(self))
+        self.set_analysis_feature(analysis.Feature.BEATS, analysis.annotate_downbeats(beats, UserSong.DEFAULT_TIME_SIGNATURE))
+        duration = analysis.analyze_duration(self._samples, UserSong.SAMPLE_RATE)
+        self.set_analysis_feature(analysis.Feature.DURATION, duration)
         # song.set_analysis_feature(Analysis.Feature.KEY, Analyzer._analyze_key(song))
-        # TODO: MATCH WITH SPOTIFY SONG
-        # TODO: MERGE ANALYSIS FEATURES WITH SPOTIFY SONG
-        # song.set_analysis_feature(analysis.Feature.BEATS, analysis.annotate_downbeats(beats, TIME_SIGNATURE_FROM_SPOTIFY))
 
-    @staticmethod
-    def _analyze_beats(song: 'UserSong') -> Tuple[float, List[analysis.Beat]]:
+    def analyze_spotify(self):
         """
-        Analyzes the tempo and the beats of this song and returns them as a tuple
+        Gets the closest matching song from the Spotify API and merges it into this song's
+        analysis, if there is no matching Spotify song, the UserSong is unchanged
+        """
+        sp_song = matcher.match_song(self)
+        if sp_song is not None:
+            matcher.merge_song_analysis(self, sp_song)
 
-        @return: A Tuple of (tempo, beats)
-        """
-        tempo, beats = librosa.beat.beat_track(song.get_samples(), sr=UserSong.SAMPLE_RATE, units=analysis.Beat.INDEX_VALUE)
-        # Before getting time signature from spotify song, we assume 
-        beats = list(map(lambda x: analysis.Beat(x, False), beats))
-        return (tempo, beats)
-
-    @staticmethod
-    def _analyze_duration(song: 'UserSong') -> float:
-        """
-        Returns the duration of the song in seconds
-
-        @return: The duration of the song in milliseconds
-        """
-        duration = librosa.get_duration(song.get_samples(), UserSong.SAMPLE_RATE)
-        return duration * 1000 # want milliseconds
-    
-    @staticmethod
-    def _analyze_key(song: 'UserSong') -> Camelot:
-        # TODO: Add our own analysis of key to compare to Spotify API for additional validation
-        pass
+        time_signature = self.get_analysis_feature(analysis.Feature.TIME_SIGNATURE)
+        # Only if we get a non 4 beats per measure time signature do we re-annotate the beats
+        if time_signature is not None and time_signature > 0 and time_signature != 4:
+            beats = self.get_analysis_feature(analysis.Feature.BEATS)
+            self.set_analysis_feature(analysis.Feature.BEATS, analysis.annotate_downbeats(beats, time_signature))
 
     def get_path(self):
         """
@@ -88,3 +78,11 @@ class UserSong(Song):
         @return: np.ndarray of song samples
         """
         return self._samples
+
+def create_analyzed_user_song(path: str) -> UserSong:
+    return UserSong(path, True)
+
+def load_songs(file_paths: List[str]) -> List[UserSong]:
+    p = Pool(os.cpu_count())
+    songs = p.map(create_analyzed_user_song, file_paths)
+    return songs

@@ -1,5 +1,8 @@
+import librosa
 from enum import Enum, auto
-from typing import Any, List
+from typing import Any, List, Tuple
+
+from . import keys
 
 class Feature(Enum):
     BEATS = auto() # TODO: Something with beats to know it's a downbeat?
@@ -75,6 +78,30 @@ class Beat:
     def __init__(self, index: float, is_downbeat: bool):
         self.index = index
         self.is_downbeat = is_downbeat
+
+def analyze_beats(samples: List[float], sample_rate: int) -> Tuple[float, List[Beat]]:
+    """
+    Analyzes the tempo and the beats of this song and returns them as a tuple
+
+    @return: A Tuple of (tempo, beats)
+    """
+    tempo, beats = librosa.beat.beat_track(samples, sr=sample_rate, units=Beat.INDEX_VALUE)
+    # Before getting time signature from spotify song, we assume 
+    beats = list(map(lambda x: Beat(x, False), beats))
+    return (tempo, beats)
+
+def analyze_duration(samples: List[float], sample_rate: int) -> float:
+    """
+    Returns the duration of the song in seconds
+
+    @return: The duration of the song in milliseconds
+    """
+    duration = librosa.get_duration(samples, sample_rate)
+    return duration * 1000 # want milliseconds
+
+def analyze_key(samples: List[float], sample_rate: int) -> keys.Camelot:
+    # TODO: Add our own analysis of key to compare to Spotify API for additional validation
+    pass
 
 def annotate_downbeats(beats: List[Beat], time_signature: int) -> List[Beat]:
     new_beats = []

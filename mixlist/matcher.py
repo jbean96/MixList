@@ -3,7 +3,6 @@ from typing import List, Tuple
 from . import spotify
 from . import util
 from . import song
-from .usersong import UserSong
 
 # A threshold can be specified such that if the first returned song in the first NUM_SONGS songs
 # has a similarity value > MAX_THRESHOLD it will be chosen as the matching song
@@ -15,7 +14,7 @@ MIN_THRESHOLD = 0.5
 # automatically select that as the matching song, will otherwise use the max song similarity
 NUM_SONGS = 3
 
-def _get_matching_songs(user_song: UserSong, num_songs: int) -> List[spotify.SpotifySong]:
+def _get_matching_songs(user_song: song.Song, num_songs: int) -> List[spotify.SpotifySong]:
     """
     Gets the matching songs for a song from the Spotify API
 
@@ -33,7 +32,7 @@ def _get_matching_songs(user_song: UserSong, num_songs: int) -> List[spotify.Spo
     # Map the returned audio features back to the respective SpotifySong
     return list(map(_lambda_func, sp_songs, sp_features))
 
-def _score_matching_songs(user_song: UserSong, 
+def _score_matching_songs(user_song: song.Song, 
     matches: List[spotify.SpotifySong]) -> List[Tuple[spotify.SpotifySong, float]]:
     """
     Scores a list of SpotifySong objects by calculating their similarity to the user loaded song
@@ -89,7 +88,7 @@ def _pick_closest_song(sp_songs: List[Tuple[spotify.SpotifySong, float]],
     
     return best_tup[0]
 
-def match_song(user_song: UserSong, max_thresh: float=MAX_THRESHOLD, 
+def match_song(user_song: song.Song, max_thresh: float=MAX_THRESHOLD, 
     min_thresh: float=MIN_THRESHOLD, num_songs: int=NUM_SONGS, 
     query_limit: int=spotify.QUERY_LIMIT) -> spotify.SpotifySong:
     """
@@ -105,7 +104,8 @@ def match_song(user_song: UserSong, max_thresh: float=MAX_THRESHOLD,
     @param query_limit: The max number of songs to return from the Spotify API, default is
         mixlist.spotify.QUERY_LIMIT
     @return: The best matching SpotifySong from the Spotify API for the user loaded song or
-        None if there was no SpotifySong with a similarity score greater than min_thresh
+        None if there was no SpotifySong with a similarity score greater than min_thresh or 
+        if Spotify didn't have any results that matched the query
     """
     if query_limit > 50 or query_limit <= 0:
         raise ValueError("Query limit must be between 0 (exclusive) and 50 (inclusive)")
@@ -114,6 +114,9 @@ def match_song(user_song: UserSong, max_thresh: float=MAX_THRESHOLD,
         raise ValueError("Max threshold needs to be greater than the min threshold")
 
     sp_songs = _get_matching_songs(user_song, query_limit)
+    if len(sp_songs) == 0:
+        # No matching songs
+        return None
     scored_songs = _score_matching_songs(user_song, sp_songs)
     return _pick_closest_song(scored_songs, max_thresh, min_thresh, num_songs)
 
