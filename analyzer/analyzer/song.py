@@ -48,7 +48,10 @@ class Song:
         self._analysis.set_feature(feature, value)
 
     def get_analysis_feature(self, feature: analysis.Feature) -> Any:
-        return self._analysis.get_feature(feature)
+        feature_val = self._analysis.get_feature(feature)
+        if feature_val is None:
+            raise Exception("No value for feature: %s" % feature)
+        return feature_val
 
 def similarity(song1: Song, song2: Song, features: List[analysis.Feature]=None) -> float:
     """
