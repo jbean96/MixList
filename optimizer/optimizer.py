@@ -1,12 +1,13 @@
 import sys, os
 lib_path = os.path.abspath(os.path.join(__file__, '..', 'MixList'))
 sys.path.append(lib_path)
-from analyzer.analyzer.song import Song
+from analyzer.analyzer import song
 from . import song_vector
 from . import transition
 from . import threshold
 from . import mix
 from . import mix_goal
+from . import style
 
 class Optimizer(object):
     """ 
@@ -14,23 +15,32 @@ class Optimizer(object):
     version 1: consider only song sequences == 2
     version 2: consider song sequences >= 2 or potentially entire "goal" sections
     """
-    def __init__(self, songs, transitions, style, goals):
+    def __init__(self, songs, transitions, style: style.Style, goals):
         """
         Initializes an Optimizer object using given params.
 
         Keyword args:
         """
         # check arguments are valid
+        # loop through given songs and ensure they are valid
         self.songs = list()
-
-        # loop through given songs and create song vectors
         for s in songs:
-            assert isinstance(s, Song)
-            self.songs.append()
-
-        self.transitions = transitions
+            assert isinstance(s, song.Song)
+            self.songs.append(s)
+        # loop through given transition and ensure they are valid 
+        self.transitions = list()
+        for t in transitions:
+            assert isinstance(t, transition.Transition)
+            self.transitions.append(t)
+        
         self.style = style
-        self.goals = goals
+        # loop through given goals and ensure they are valid
+        self.goals = list()
+        for g in goals:
+            assert isinstance(g, mix_goal.MixGoal)
+            # check that the time stamps are strictly increasing
+            if (len(self.goals) > 1):
+                assert self.goals[len(self.goals - 1)].time < g.time
         self.curr_goal = goals[0]
         self.songs_played = set()
 
