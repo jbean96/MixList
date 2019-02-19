@@ -1,12 +1,50 @@
 import librosa
+import math
 import pickle
 from enum import Enum, auto
 from typing import Any, Dict, List, Tuple
 
 from . import keys
+from . import util
+
+class Beat:
+    class DownBeatAnalysis(Enum):
+        NAIVE = auto()
+    
+    #INDEX_VALUE = 'time' # ['frames', 'samples', 'time']
+    INDEX_VALUE = 'samples'
+    DOWNBEAT_ANALYSIS = DownBeatAnalysis.NAIVE
+
+    def __init__(self, index: float, is_downbeat: bool=False):
+        self.index = index
+        self.is_downbeat = is_downbeat
+
+    def get_start_time(self) -> float:
+        if Beat.INDEX_VALUE == 'time':
+            return self.index
+        elif Beat.INDEX_VALUE == 'samples':
+            return librosa.samples_to_time(self.index, sr=util.SAMPLE_RATE)
+        else:
+            raise NotImplementedError("Only samples and time are supported")
+
+    def get_start_sample(self) -> int:
+        if Beat.INDEX_VALUE == 'samples':
+            return self.index
+        elif Beat.INDEX_VALUE == 'time':
+            return librosa.time_to_samples(self.index, sr=util.SAMPLE_RATE)
+        else:
+            raise NotImplementedError("Only samples and time are supported")
+
+    def __str__(self) -> str:
+        return "(%f, %s)" % (self.index, "True" if self.is_downbeat else "False")
+
+    def __eq__(self, other) -> bool:
+        if type(self) != type(other):
+            return False
+        return self.index == other.index and self.is_downbeat == other.is_downbeat
 
 class Feature(Enum):
-    BEATS = auto() # TODO: Something with beats to know it's a downbeat?
+    BEATS = auto()
     DANCEABILITY = auto()
     DURATION = auto()
     ENERGY = auto()
@@ -73,24 +111,35 @@ class Analysis:
             return None
 
         return self._features[feature]
+    
+def get_closest_beat_to_time(beats: List[Beat], time: float, downbeat: bool=True) -> Beat:
+    if downbeat:    
+        beats = list(filter(lambda x: x.is_downbeat, beats))
+    low = 0
+    high = len(beats) - 1
+    mid = None
+    while (low < high - 1):
+        mid = math.floor((low + high) * 1.0 / 2)
+        if beats[mid].get_start_time() < time:
+            low = mid
+        elif beats[mid].get_start_time() > time:
+            high = mid
+        else: # beats[mid].get_start_time() == time
+            return beats[mid]
+    closest = (beats[mid], abs(beats[mid].get_start_time() - time))
+    if mid - 1 >= 0:
+        if closest[1] > abs(beats[mid-1].get_start_time() - time):
+            closest = (beats[mid-1], abs(beats[mid-1].get_start_time() - time))
+    if mid + 1 < len(beats):
+        if closest[1] > abs(beats[mid+1].get_start_time() - time):
+            closest = (beats[mid+1], abs(beats[mid+1].get_start_time() - time))
+    return closest[0]
 
 def from_file(file_path: str) -> Analysis:
     with open(file_path, "rb") as in_file:
         new_analysis = pickle.loads(in_file.read())
         in_file.close()
         return new_analysis
-
-class Beat:
-    class DownBeatAnalysis(Enum):
-        NAIVE = auto()
-    
-    #INDEX_VALUE = 'time' # ['frames', 'samples', 'time']
-    INDEX_VALUE = 'samples'
-    DOWNBEAT_ANALYSIS = DownBeatAnalysis.NAIVE
-
-    def __init__(self, index: float, is_downbeat: bool=False):
-        self.index = index
-        self.is_downbeat = is_downbeat
 
 def analyze_beats(samples: List[float], sample_rate: int) -> Tuple[float, List[Beat]]:
     """
@@ -99,7 +148,7 @@ def analyze_beats(samples: List[float], sample_rate: int) -> Tuple[float, List[B
     @return: A Tuple of (tempo, beats)
     """
     tempo, beats = librosa.beat.beat_track(samples, sr=sample_rate, units=Beat.INDEX_VALUE)
-    # Before getting time signature from spotify song, we assume 
+    # for now, no downbeats
     beats = list(map(lambda x: Beat(x, False), beats))
     return (tempo, beats)
 
@@ -110,7 +159,7 @@ def analyze_duration(samples: List[float], sample_rate: int) -> float:
     @return: The duration of the song in milliseconds
     """
     duration = librosa.get_duration(samples, sample_rate)
-    return duration * 1000 # want milliseconds
+    return duration * 1000 # convert to milliseconds
 
 def analyze_key(samples: List[float], sample_rate: int) -> keys.Camelot:
     # TODO: Add our own analysis of key to compare to Spotify API for additional validation
