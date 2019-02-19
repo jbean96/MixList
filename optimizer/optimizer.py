@@ -76,7 +76,13 @@ class Optimizer(object):
         """
         min_result = numpy.subtract(mix.diff, min.get_data)
         # check all elements, if < 0 then return false
+        assert isinstance(min_result, numpy.array)
+        if numpy.any(min_result[:, 0] < 0):
+            return False
         max_result = numpy.subtract(mix.diff, max.get_data) 
+        assert isinstance(max_result, numpy.array)
+        if numpy.any(max_result[:, 0] > 0):
+            return False
         # check all elements, if > 0 then return false
         return True
     
@@ -84,7 +90,7 @@ class Optimizer(object):
         result = numpy.subtract(mix.diff, ideal.get_data)
         # take absolute value of all array elements
         # return the sum of results elements
-        return 0.0
+        return numpy.absolute(result)
 
     def get_next_possibilities(self, a):
         """
