@@ -56,8 +56,10 @@ class UserSong(Song):
         sp_song = matcher.match_song(self)
         if sp_song is not None:
             matcher.merge_song_analysis(self, sp_song[0])
+        else:
+            return
 
-        time_signature = sp_song.get_analysis_feature(analysis.Feature.TIME_SIGNATURE)
+        time_signature = self.get_analysis_feature(analysis.Feature.TIME_SIGNATURE)
         # Only if we get a non 4 beats per measure time signature do we re-annotate the beats
         if time_signature is not None and time_signature > 0 and time_signature != 4:
             beats = self.get_analysis_feature(analysis.Feature.BEATS)
