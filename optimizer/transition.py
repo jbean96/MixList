@@ -6,13 +6,13 @@ class Transition(object):
     
     [TEMPO SCALAR, KEY DIFF SCALAR, ENERGY SCALAR, VALENCE SCALAR]
     """
-    def __init__(self, values: numpy.ndarray):
+    def __init__(self, values: numpy.array):
         """
         Creates a new transition object.
         """
-        self.data = numpy.ndarray
+        self.data = numpy.array
     
-    def get_data(self) -> numpy.ndarray:
+    def get_data(self) -> numpy.array:
         """
         Returns the data for this Transition object.
         """

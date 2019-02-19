@@ -8,14 +8,13 @@ class Threshold(object):
     For example, using features: []
     """
 
-    def __init__(self, values):
+    def __init__(self, values: numpy.array):
         """
         Initializes a threshold instance
         """
-        assert isinstance(values, numpy.ndarray)
         self.data = values
     
-    def get_data(self) -> numpy.ndarray:
+    def get_data(self) -> numpy.array:
         """
         Returns the data for this SongVector object
         """

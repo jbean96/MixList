@@ -17,7 +17,7 @@ class SongVector(object):
         # convert instance of Song to a song_vector
         # tempo, key, energy, valence (happy vs. sad)
         if song.isAnalyzed():
-            self.data = numpy.ndarray([
+            self.data = numpy.array([
                 song.get_analysis().get_feature(song.Feature.TEMPO),
                 song.get_analysis().get_feature(song.Feature.KEY),
                 song.get_analysis().get_feature(song.Feature.ENERGY),
@@ -26,7 +26,7 @@ class SongVector(object):
         else:
             AssertionError("Song passed to initialize a SongVector must be analyzed.")
     
-    def get_data(self) -> numpy.ndarray:
+    def get_data(self) -> numpy.array:
         """
         Returns the data for this SongVector object
         """

@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, numpy
 lib_path = os.path.abspath(os.path.join(__file__, '..', 'MixList'))
 sys.path.append(lib_path)
 from analyzer.analyzer import song
@@ -44,31 +44,46 @@ class Optimizer(object):
         self.curr_goal = goals[0]
         self.songs_played = set()
 
-    def mix_songs(self, a, b):
+    def mix_songs(self, a: song.Song, b: song.Song) -> mix.MixSequence:
         """
         Compares two songs a and b based on properties of song skeleton.
         Returns a mix_sequence object representing the difference between the two songs
         in order.
         
         Keyword args:
+            a: the first song to be mixed fo Song type.
+            b: the second song to be mixed of Song type.
         """
-        return NotImplementedError()
+        return mix.MixSequence(a, b)
 
-    def eval_transition(self, a, b, t):
+    def eval_transition(self, a: song.Song, b: song.Song, t: transition.Transition) -> mix.MixSequence:
         """
         Returns the mix_sequence between two songs evaluated for a specific transition.
 
         Keyword args:
+            a: the first song to be mixed fo Song type.
+            b: the second song to be mixed of Song type.
+            t: the transition to apply to the mix.
         """
-        return NotImplementedError()
+        return mix.MixSequence(a, b).apply_transition(t)
 
-    def compare_threshold(self, mix, threshold):
+    def in_threshold_range(self, mix: mix.MixSequence, min: threshold.Threshold, max: threshold.Threshold) -> bool:
         """
         Determines if mix is valid within threshold.
 
         Keyword args:
         """
-        return NotImplementedError()
+        min_result = numpy.subtract(mix.diff, min.get_data)
+        # check all elements, if < 0 then return false
+        max_result = numpy.subtract(mix.diff, max.get_data) 
+        # check all elements, if > 0 then return false
+        return True
+    
+    def threshold_diff(self, mix: mix.MixSequence, ideal: threshold.Threshold) -> float:
+        result = numpy.subtract(mix.diff, ideal.get_data)
+        # take absolute value of all array elements
+        # return the sum of results elements
+        return 0.0
 
     def get_next_possibilities(self, a):
         """

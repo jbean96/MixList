@@ -1,8 +1,9 @@
+from . import song_vector
 class MixGoal(object): 
     """
     Represents the goal index of a mix given an ideal "song"  and time.
     """
-    def __init__(self, ideal_song, time_stamp):
+    def __init__(self, ideal_song: song_vector.SongVector, time_stamp: float):
         """
         Intializes a mix_goal instance
         """
