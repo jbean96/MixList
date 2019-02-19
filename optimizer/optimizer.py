@@ -1,6 +1,14 @@
-from song_vector import song_vector
+import sys, os
+lib_path = os.path.abspath(os.path.join(__file__, '..', 'MixList'))
+sys.path.append(lib_path)
+from analyzer.analyzer.song import Song
+from . import song_vector
+from . import transition
+from . import threshold
+from . import mix
+from . import mix_goal
 
-class optimizer():
+class Optimizer(object):
     """ 
     Computes optimal mixtape based on given songs, transitions, style and goals.
     version 1: consider only song sequences == 2
@@ -17,7 +25,8 @@ class optimizer():
 
         # loop through given songs and create song vectors
         for s in songs:
-            self.songs.append(song_vector(s)) 
+            assert isinstance(s, Song)
+            self.songs.append()
 
         self.transitions = transitions
         self.style = style

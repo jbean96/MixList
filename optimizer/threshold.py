@@ -1,4 +1,4 @@
-class threshold():
+class Threshold(object):
     """
     Represents a "threshold" to evaluate a mix, common states represent
     a DJ's style threshold or goal progress threshold.

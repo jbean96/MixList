@@ -1,4 +1,4 @@
-class mix_goal(): 
+class MixGoal(object): 
     """
     Represents the goal index of a mix given an ideal "song"  and time.
     """

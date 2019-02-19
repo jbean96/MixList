@@ -1,6 +1,6 @@
-from mixlist.song import Song
+from analyzer.analyzer import Song
 
-class song_vector():
+class SongVector(object):
     """
     Transforms data from a "song" object given by the analyzer into a song_vector
     for easy comparison and manipulation through vector/matrix calculations
@@ -14,4 +14,5 @@ class song_vector():
         Initializes a song vector instance
         
         """
+        assert isinstance(song, Song)
         # convert instance of Song to a song_vector

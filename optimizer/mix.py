@@ -1,4 +1,4 @@
-class mix_sequence():
+class MixSequence(object):
     """
     Represents a mix between a sequence of songs in the order
     Initially two, later >= 2
