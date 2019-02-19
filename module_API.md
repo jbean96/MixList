@@ -42,6 +42,8 @@
 - `ordered list of transition arrays (size : N - 1)` [[transition from A to B], [transition from B to C], ... ,[]]
     - `transition array` [transition from A to B] --> [[section 1], [section 2], ... , []]
         - `section`:
+            - file_path of track A (string)
+            - file_path of track B (string)
             - index of track A start section (index : integer)
             - index of track B start section (index : integer)
             - number of beats in the section (length : integer)

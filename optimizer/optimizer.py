@@ -2,6 +2,7 @@ import sys, os, numpy
 lib_path = os.path.abspath(os.path.join(__file__, '..', 'MixList'))
 sys.path.append(lib_path)
 from analyzer.analyzer import song
+from analyzer.analyzer import analysis
 from . import song_vector
 from . import transition
 from . import threshold
@@ -91,6 +92,37 @@ class Optimizer(object):
 
         Keyword args:
         """
+
+    def generate_3_track(self, a: song.Song, b: song.Song, c: song.Song) -> dict():
+        """
+        For testing purposes.
+        Returns a structure ready for the composer that represents a mix between
+        Song a --> Song b --> Song c using 16 beat crossfade/tempochange transition.
+        """
+        # get beat 16 beats from the end of Song a for transition 2
+        beat_a_0 = len(a.get_analysis_feature(analysis.Feature.BEATS)) - 17
+        # start beat 0 for Song b on transition 0
+        beat_b_0 = 0
+        # start beat 16 beats from end of Song b for transition 1
+        beat_b_1 = len(b.get_analysis_feature(analysis.Feature.BEATS)) - 17
+        # start beat 0 for Song c on transition 1
+        beat_c_1 = 0
+        # transition is length is always 16
+        length = 16
+        # pass transition type
+        t_1 = "crossfade"
+        t_2 = "tempochange"
+        mix = [
+                {"song_a": a, "song_b": b, "sections": [
+                    {"start_a": beat_a_0,"start_b": beat_b_0, "length": length, "type": [t_1, t_2]}
+                    ]
+                },
+                {"song_a": b, "song_b": c, "sections": [
+                    {"start_a": beat_b_1, "start_b": beat_c_1, "length": length, "type": [t_1, t_2]}
+                    ]
+                }
+            ]
+        return mix
 
     def generate_mixtape(self):
         """
