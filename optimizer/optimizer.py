@@ -45,7 +45,42 @@ class Optimizer(object):
         self.curr_goal = goals[0]
         self.songs_played = set()
 
-    def mix_songs(self, a: song.Song, b: song.Song) -> mix.MixSequence:
+    def get_next_possibilities(self, a):
+        """
+        Returns a list of possible next songs given song a
+
+        Keyword args:
+        """
+
+    def generate_mixtape(self):
+        """
+        Generates a mixtape using this optimizer's state.
+
+        Keyword args:        
+        """
+        # choose the first song (closest to initial goal, based on song comparison)
+        # while more songs && more goals
+            # consider state
+            # consider possibilities
+                # all songs --> compare to current --> results_1
+                # results_1 --> progress to goal threshold --> r_2 
+                # r_2 --> evaluate transitions --> progress to goal threshold --> r_3
+                # r_3 --> style threshold --> possibilities
+            # make decision
+                # optimal or random or a little bit of both?
+                # to consider:
+                    # ideal style threshold
+                    # ideal progress to goal threshold
+            # update state
+                # update songs played
+                # update curr song
+                # time to next goal
+            # check goal progress
+                # determine if moving to next goal
+        return NotImplementedError()
+
+    @staticmethod
+    def mix_songs(a: song.Song, b: song.Song) -> mix.MixSequence:
         """
         Compares two songs a and b based on properties of song skeleton.
         Returns a mix_sequence object representing the difference between the two songs
@@ -57,7 +92,8 @@ class Optimizer(object):
         """
         return mix.MixSequence(a, b)
 
-    def eval_transition(self, a: song.Song, b: song.Song, t: transition.Transition) -> mix.MixSequence:
+    @staticmethod
+    def eval_transition(a: song.Song, b: song.Song, t: transition.Transition) -> mix.MixSequence:
         """
         Returns the mix_sequence between two songs evaluated for a specific transition.
 
@@ -68,7 +104,8 @@ class Optimizer(object):
         """
         return mix.MixSequence(a, b).apply_transition(t)
 
-    def in_threshold_range(self, mix: mix.MixSequence, min: threshold.Threshold, max: threshold.Threshold) -> bool:
+    @staticmethod
+    def in_threshold_range(mix: mix.MixSequence, min: threshold.Threshold, max: threshold.Threshold) -> bool:
         """
         Determines if mix is valid within threshold.
 
@@ -85,21 +122,16 @@ class Optimizer(object):
             return False
         # check all elements, if > 0 then return false
         return True
-    
-    def threshold_diff(self, mix: mix.MixSequence, ideal: threshold.Threshold) -> float:
+
+    @staticmethod 
+    def threshold_diff(mix: mix.MixSequence, ideal: threshold.Threshold) -> float:
         result = numpy.subtract(mix.diff, ideal.get_data)
         # take absolute value of all array elements
         # return the sum of results elements
         return numpy.absolute(result)
 
-    def get_next_possibilities(self, a):
-        """
-        Returns a list of possible next songs given song a
-
-        Keyword args:
-        """
-
-    def generate_3_track(self, a: song.Song, b: song.Song, c: song.Song) -> dict():
+    @staticmethod
+    def generate_3_track(a: song.Song, b: song.Song, c: song.Song) -> dict():
         """
         For testing purposes.
         Returns a structure ready for the composer that represents a mix between
@@ -129,34 +161,3 @@ class Optimizer(object):
                 }
             ]
         return mix
-
-    def generate_mixtape(self):
-        """
-        Generates a mixtape using this optimizer's state.
-
-        Keyword args:        
-        """
-        # choose the first song (closest to initial goal, based on song comparison)
-        # while more songs && more goals
-            # consider state
-            # consider possibilities
-                # all songs --> compare to current --> results_1
-                # results_1 --> progress to goal threshold --> r_2 
-                # r_2 --> evaluate transitions --> progress to goal threshold --> r_3
-                # r_3 --> style threshold --> possibilities
-            # make decision
-                # optimal or random or a little bit of both?
-                # to consider:
-                    # ideal style threshold
-                    # ideal progress to goal threshold
-            # update state
-                # update songs played
-                # update curr song
-                # time to next goal
-            # check goal progress
-                # determine if moving to next goal
-        return NotImplementedError()
-
-
-
-
