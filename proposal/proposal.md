@@ -64,23 +64,22 @@ For each component (Input, Analysis, Integration of User Parameters, Optimizatio
     - \[Analysis - T\]: Test accuracy of the analysis, how does the analysis phase account for differences in audio files and received data?
     - \[Analysis - T\]: Test granularity of the analysis, how many data points can we capture effectively?
 
-### February 14th: Basic Functional Composition
+### February 19th: Basic Functional Composition
 
-1. \[Composition - R\]: Composition component can take two songs along with their skeletons and produce a BPM & phrase matching mix for output.
-    - Beatmatching (tempo change)
-    - Phrase matching (counting/time signature ID)
-    - Crossfading (amplitude change)
+1. \[All - T\]: Get the entire pipeline working, analysis -> optimizer -> composer
+    - Tying everything together so that we can continue to improve the automixing process
 
-### February 21st: Basic Optimization & Better Composition
+### February 26th: Basic Optimization & Better Composition
 
 1. \[Composition - R\] & \[Optimization - F\]: Optimization component makes decisions about two qualitatively and/or qualitatively different songs and composition component outputs rendered mix based on decision.
     - Beatmatching (tempo change)
     - Phrase matching (counting/time signature ID)
+    - Crossfading (amplitude change)
 2. \[Composition - R\] & \[Optimization - R\]: Optimization and composition components can render a complete mix based on the optimization described above.
     - Multiple songs provided as input, one continuous mix can be created
     - Only considerations given to BPM, songs are modified as necessary to keep the beat flowing
 
-### February 28th: Influenced Composition
+### March 3rd: Basic Optimization & Influenced Composition
 
 1. \[Params - R\]: User defined parameters influence the mix optimization process.
     - Exposes options for the user to influence the output
