@@ -5,3 +5,4 @@ songs.zip
 *.xml
 __pycache__
 .vscode*
+keyfinder/data

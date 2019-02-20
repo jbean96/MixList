@@ -8,6 +8,7 @@ from analyzer.analyzer import spotify
 from analyzer.analyzer import song
 from analyzer.analyzer.usersong import UserSong
 from analyzer.analyzer import matcher
+from analyzer.analyzer import analysis
 
 def main(args):
     user_song = UserSong(args.song)
@@ -18,6 +19,7 @@ def main(args):
         print("Found match!")
         matcher.merge_song_analysis(user_song, sp_song)
         print(sp_song.get_id())
+        print(user_song.get_analysis_feature(analysis.Feature.KEY))
     else:
         print("No matching songs found")
 

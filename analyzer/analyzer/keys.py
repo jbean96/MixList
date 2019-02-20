@@ -48,6 +48,11 @@ class Mode(Enum):
     MINOR = 0
     MAJOR = 1
 
+STRING_TO_MODE = {
+    "major" : Mode.MAJOR,
+    "minor" : Mode.MINOR
+}
+
 # Internal key representation
 class Key(Enum):
     NO_KEY =  -1
@@ -68,6 +73,26 @@ class Key(Enum):
     A_SHARP = 10
     B_FLAT =  10
     B =       11
+
+STRING_TO_KEY = {
+    "C" : Key.C,
+    "C#" : Key.C_SHARP,
+    "Db" : Key.D_FLAT,
+    "D" : Key.D,
+    "D#" : Key.D_SHARP,
+    "Eb" : Key.E_FLAT,
+    "E" : Key.E,
+    "F" : Key.F,
+    "F#" : Key.F_SHARP,
+    "Gb" : Key.G_FLAT,
+    "G" : Key.G,
+    "G#" : Key.G_SHARP,
+    "Ab" : Key.A_FLAT,
+    "A" : Key.A,
+    "A#" : Key.A_SHARP,
+    "Bb" : Key.B_FLAT,
+    "B" : Key.B
+}
 
 # Spotify value -> Internal mode
 SPOTIFY_MODE = {
@@ -124,6 +149,11 @@ CAMELOT_KEYS = {
     (Key.NO_KEY, Mode.MAJOR)  : None,
     (Key.NO_KEY, Mode.MINOR)  : None
 }
+
+def key_from_string(key_string: str) -> Camelot:
+    (key, mode) = key_string.split(" ")
+    dict_key = (STRING_TO_KEY[key], STRING_TO_MODE[mode])
+    return CAMELOT_KEYS[dict_key]
     
 def spotify_to_camelot(key: int, mode: int) -> Camelot:
     """
