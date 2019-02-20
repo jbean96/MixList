@@ -16,6 +16,6 @@ class Threshold(object):
     
     def get_data(self) -> numpy.array:
         """
-        Returns the data for this SongVector object
+        Returns the data for this Threshold object
         """
         return self.data

@@ -1,6 +1,5 @@
 import numpy
 from analyzer.analyzer import song
-from . import song_vector
 from . import transition
 
 class Mix(object):
@@ -18,9 +17,7 @@ class Mix(object):
         self.track_a = track_a
         self.track_b = track_b
         # compute difference between the two song vectors
-        vec_a = song_vector.SongVector(track_a)
-        vec_b = song_vector.SongVector(track_b)
-        self.diff = numpy.absolute(vec_a.get_data - vec_b.get_data)
+        self.diff = numpy.array([1,1,1,1])
     
     def apply_transition(self, transition: transition.Transition):
         self.diff = numpy.multiply(self.diff, transition.get_data())
@@ -30,3 +27,6 @@ class Mix(object):
     # transition: [(1 + 2 + 3), (1 + 2 + 3), ...]
     # mix: [i, j, k, l]
     # transition [i + j + k, i * 2 + j, ...]
+
+
+    # consider comparing each feature on a song to song basis
