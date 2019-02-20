@@ -6,3 +6,4 @@ songs.zip
 __pycache__
 .vscode*
 keyfinder/data
+keyfinder/data.tar.gz
