@@ -39,31 +39,23 @@ def get_test_tuples(args: argparse.Namespace) -> List[Tuple[str, keys.Camelot]]:
     test_tuples = list(filter(lambda x: x is not None, test_tuples))
     return test_tuples
 
-def compare_classifier_output(test_tuples: List[Tuple[str, keys.Camelot]]) -> Dict[keys.KeyRelationship, int]:
-    counts = {}
-    for relationship in keys.KeyRelationship:
-        counts[relationship] = 0
-
-    for tup in test_tuples:
-        y, sr = librosa.load(tup[0])
-        predicted_key = classifier.classify(y, sr)
-        actual_key = tup[1]
-        relationship = actual_key.get_relationship(predicted_key)
-        counts[relationship] += 1
-        print(relationship)
-    return counts
+def compare_classifier_output(test_tuple: Tuple[str, keys.Camelot]) -> keys.KeyRelationship:
+    y, sr = librosa.load(test_tuple[0])
+    predicted_key = classifier.classify(y, sr)
+    actual_key = test_tuple[1]
+    relationship = actual_key.get_relationship(predicted_key)
+    print(relationship)
+    return relationship
 
 def main(args: argparse.Namespace):
     test_tuples = get_test_tuples(args)
     p = Pool(os.cpu_count())
     results = p.map(compare_classifier_output, test_tuples[:10])
-    #results = [compare_classifier_output(test_tuples[:10])]
     compiled_dict = {}
-    for d in results:
-        for key in d:
-            if key not in compiled_dict:
-                compiled_dict[key] = 0
-            compiled_dict[key] += d[key]
+    for relationship in results:
+        if relationship not in compiled_dict:
+            compiled_dict[relationship] = 0
+        compiled_dict[relationship] += 1
     score = sum(map(lambda x: compiled_dict[x] * keys.KEY_RELATIONSHIP_SCORE[x], compiled_dict.keys()))
     total = sum(compiled_dict.values())
     if args.output:
