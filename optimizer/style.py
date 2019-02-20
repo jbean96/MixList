@@ -1,7 +1,7 @@
 from . import transition
 class Style(object):
     """
-    Represents a DJs "style" by representing their preferences as 3 thresholds
+    Represents a DJs "style" defined by 3 different thresholds
     min: minimum threshold for a mix
     max: maximum threshold for a mix
     ideal: ideal characteristics of a mix
