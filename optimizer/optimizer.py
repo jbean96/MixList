@@ -105,7 +105,7 @@ class Optimizer(object):
         return mix.Mix(a, b).apply_transition(t)
 
     @staticmethod
-    def in_threshold_range(mix: mix.MixSequence, min: threshold.Threshold, max: threshold.Threshold) -> bool:
+    def in_threshold_range(mix: mix.Mix, min: threshold.Threshold, max: threshold.Threshold) -> bool:
         """
         Determines if mix is valid within threshold.
 
@@ -124,7 +124,7 @@ class Optimizer(object):
         return True
 
     @staticmethod 
-    def threshold_diff(mix: mix.MixSequence, ideal: threshold.Threshold) -> float:
+    def threshold_diff(mix: mix.Mix, ideal: threshold.Threshold) -> float:
         result = numpy.subtract(mix.diff, ideal.get_data)
         # take absolute value of all array elements
         # return the sum of results elements
