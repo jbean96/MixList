@@ -9,6 +9,7 @@ from . import threshold
 from . import mix
 from . import mix_goal
 from . import style
+from typing import Dict
 
 class Optimizer(object):
     """ 
@@ -131,7 +132,7 @@ class Optimizer(object):
         return numpy.absolute(result)
 
     @staticmethod
-    def generate_3_track(a: song.Song, b: song.Song, c: song.Song) -> dict():
+    def generate_3_track(a: song.Song, b: song.Song, c: song.Song) -> Dict:
         """
         For testing purposes.
         Returns a structure ready for the composer that represents a mix between
