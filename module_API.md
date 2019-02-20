@@ -39,15 +39,15 @@
 - `ordered list of song objects (size : N)`:
     - `song_analysis_object`
 
-- `ordered list of transition arrays (size : N - 1)` [[transition from A to B], [transition from B to C], ... ,[]]
-    - `transition array` [transition from A to B] --> [[section 1], [section 2], ... , []]
+- `ordered list of transition dicts (size : N - 1)` [{transition from A to B}, {transition from B to C}, ... ,{}]
+    - `song_a` Track a of transition, analyzed Song object.
+    - `song_b` Track b of transition, analyzed Song object.
+    - `sections` [{section 0}, {section 1}, ... , {}]
         - `section`:
-            - file_path of track A (string)
-            - file_path of track B (string)
-            - index of track A start section (index : integer)
-            - index of track B start section (index : integer)
+            - index of track A start beat (index : integer)
+            - index of track B start beat (index : integer)
             - number of beats in the section (length : integer)
-            - type of transition array (name of transition : string) --> [transition_name_1, transition_name_2, ... , transition_name_N]
+            - transitions applied to that section (name of transition : string) --> [transition_name_1, transition_name_2, ... , transition_name_N]
             
 ## Composer
 
