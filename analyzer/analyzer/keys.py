@@ -1,48 +1,5 @@
-from enum import Enum
+from enum import auto, Enum
 from typing import List
-
-class Camelot:
-    MODES = ['A', 'B']
-
-    # For typing the class name has to be in strings if the entire class hasn't been evaluated yet
-    def __init__(self, key: int, mode: str) -> 'Camelot':
-        if mode not in Camelot.MODES:
-            raise ValueError('Mode must be one of %s' % Camelot.MODES)
-    
-        self._key = key
-        self._mode = mode
-
-    def shift_up(self) -> 'Camelot':
-        new_key = self._key + 1
-        return Camelot(new_key if new_key <= 12 else 1, self._mode)
-    
-    def shift_down(self) -> 'Camelot':
-        new_key = self._key - 1
-        return Camelot(new_key if new_key >= 1 else 12, self._mode)
-
-    def __str__(self) -> str:
-        return str(self._key) + self._mode
-
-    def change_mode(self) -> 'Camelot':
-        new_mode = Camelot.MODES[(Camelot.MODES.index(self._mode) + 1) % len(Camelot.MODES)]
-        return Camelot(self._key, new_mode)
-
-    def get_key(self) -> int:
-        return self._key
-    
-    def get_mode(self) -> int:
-        return self._mode
-
-    def get_adjacent_keys(self) -> List['Camelot']:
-        return [self.shift_up(), self.shift_down(), self.change_mode()]
-
-    def __hash__(self):
-        return hash((self._key, self._mode))
-
-    def __eq__(self, other):
-        if type(other) != type(self):
-            return False
-        return self._key == other._key and self._mode == other._mode
 
 class Mode(Enum):
     MINOR = 0
@@ -117,6 +74,115 @@ SPOTIFY_KEYS = {
     11 : Key.B
 }
 
+class KeyRelationship(Enum):
+    EXACT = auto()
+    RELATIVE_KEY = auto()
+    PARALLEL_KEY = auto()
+    PERFECT_FOURTH = auto()
+    PERFECT_FIFTH = auto()
+    NONE = auto()
+
+KEY_RELATIONSHIP_SCORE = {
+    KeyRelationship.EXACT : 1.0,
+    KeyRelationship.PERFECT_FIFTH : 0.5,
+    KeyRelationship.PERFECT_FOURTH : 0.5,
+    KeyRelationship.RELATIVE_KEY : 0.3,
+    KeyRelationship.PARALLEL_KEY : 0.2,
+    KeyRelationship.NONE : 0.0
+}
+
+class Camelot:
+    MODES = ['A', 'B']
+
+    # For typing the class name has to be in strings if the entire class hasn't been evaluated yet
+    def __init__(self, key: int, mode: str) -> 'Camelot':
+        if mode not in Camelot.MODES:
+            raise ValueError('Mode must be one of %s' % Camelot.MODES)
+    
+        self._key = key
+        self._mode = mode
+
+    def get_relationship(self, other: 'Camelot') -> KeyRelationship:
+        """
+        Gets the key relationship between this key and other
+
+        @param other: The other Camelot key to compare to
+        @return: The KeyRelationship enum describing the relationship
+        """
+        if self == other:
+            return KeyRelationship.EXACT
+        elif self.perfect_fifth() == other:
+            return KeyRelationship.PERFECT_FIFTH
+        elif self.perfect_fourth() == other:
+            return KeyRelationship.PERFECT_FOURTH
+        elif self.relative_key() == other:
+            return KeyRelationship.RELATIVE_KEY
+        elif self.parallel_key() == other:
+            return KeyRelationship.PARALLEL_KEY
+        else:
+            return KeyRelationship.NONE
+
+    def compare(self, other: 'Camelot') -> float:
+        """
+        Compares two Camelot keys and returns the comparison score as defined
+        by the MIREX score weightings for comparing keys
+
+        @param other: The other Camelot key to compare to
+        @return: A float indicating the score from comparing these two keys
+        """
+        return KEY_RELATIONSHIP_SCORE[self.get_relationship(other)]
+
+    def relative_key(self) -> 'Camelot':
+        return self.change_mode()
+
+    def parallel_key(self) -> 'Camelot':
+        key_tup = INVERSE_CAMELOT_KEYS[self]
+        if key_tup[1] == Mode.MAJOR:
+            key_tup = (key_tup[0], Mode.MINOR)
+        elif key_tup[1] == Mode.MINOR:
+            key_tup = (key_tup[0], Mode.MAJOR)
+        else:
+            raise ValueError("%s is not a mode" % key_tup[1])
+        return CAMELOT_KEYS[key_tup]
+
+    def perfect_fifth(self) -> 'Camelot':
+        return self.shift_up()
+
+    def perfect_fourth(self) -> 'Camelot':
+        return self.shift_down()
+
+    def shift_up(self) -> 'Camelot':
+        new_key = self._key + 1
+        return Camelot(new_key if new_key <= 12 else 1, self._mode)
+    
+    def shift_down(self) -> 'Camelot':
+        new_key = self._key - 1
+        return Camelot(new_key if new_key >= 1 else 12, self._mode)
+
+    def __str__(self) -> str:
+        return str(self._key) + self._mode
+
+    def change_mode(self) -> 'Camelot':
+        new_mode = Camelot.MODES[(Camelot.MODES.index(self._mode) + 1) % len(Camelot.MODES)]
+        return Camelot(self._key, new_mode)
+
+    def get_key(self) -> int:
+        return self._key
+    
+    def get_mode(self) -> int:
+        return self._mode
+
+    def get_adjacent_keys(self) -> List['Camelot']:
+        return [self.shift_up(), self.shift_down(), self.change_mode()]
+
+    def __hash__(self):
+        return hash((self._key, self._mode))
+
+    def __eq__(self, other):
+        if type(other) != type(self):
+            return False
+        return self._key == other._key and self._mode == other._mode
+
 # Mapping of internal key representation (Key, Mode) to the corresponding Camelot Key
 CAMELOT_KEYS = {
     # Mode.MINOR keys
@@ -150,9 +216,17 @@ CAMELOT_KEYS = {
     (Key.NO_KEY, Mode.MINOR)  : None
 }
 
+INVERSE_CAMELOT_KEYS = dict((v, k) for k, v in CAMELOT_KEYS.items() if v is not None)
+
 def key_from_string(key_string: str) -> Camelot:
+    """
+    Takes a string of a key like 'C major' and turns it into the corresponding 
+    Camelot key, valid strings are like
+    """
     (key, mode) = key_string.split(" ")
     dict_key = (STRING_TO_KEY[key], STRING_TO_MODE[mode])
+    if dict_key not in CAMELOT_KEYS:
+        raise Exception("%s is not valid input" % key_string)
     return CAMELOT_KEYS[dict_key]
     
 def spotify_to_camelot(key: int, mode: int) -> Camelot:
