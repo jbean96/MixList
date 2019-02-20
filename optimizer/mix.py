@@ -3,7 +3,7 @@ from analyzer.analyzer import song
 from . import song_vector
 from . import transition
 
-class MixSequence(object):
+class Mix(object):
     """
     Represents a mix between a sequence of songs in the order
     Initially two, later >= 2

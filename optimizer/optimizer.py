@@ -80,7 +80,7 @@ class Optimizer(object):
         return NotImplementedError()
 
     @staticmethod
-    def mix_songs(a: song.Song, b: song.Song) -> mix.MixSequence:
+    def mix_songs(a: song.Song, b: song.Song) -> mix.Mix:
         """
         Compares two songs a and b based on properties of song skeleton.
         Returns a mix_sequence object representing the difference between the two songs
@@ -90,10 +90,10 @@ class Optimizer(object):
             a: the first song to be mixed fo Song type.
             b: the second song to be mixed of Song type.
         """
-        return mix.MixSequence(a, b)
+        return mix.Mix(a, b)
 
     @staticmethod
-    def eval_transition(a: song.Song, b: song.Song, t: transition.Transition) -> mix.MixSequence:
+    def eval_transition(a: song.Song, b: song.Song, t: transition.Transition) -> mix.Mix:
         """
         Returns the mix_sequence between two songs evaluated for a specific transition.
 
@@ -102,7 +102,7 @@ class Optimizer(object):
             b: the second song to be mixed of Song type.
             t: the transition to apply to the mix.
         """
-        return mix.MixSequence(a, b).apply_transition(t)
+        return mix.Mix(a, b).apply_transition(t)
 
     @staticmethod
     def in_threshold_range(mix: mix.MixSequence, min: threshold.Threshold, max: threshold.Threshold) -> bool:
