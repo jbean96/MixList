@@ -1,4 +1,4 @@
-from . import transition
+from . import threshold
 class Style(object):
     """
     Represents a DJs "style" defined by 3 different thresholds
@@ -7,7 +7,7 @@ class Style(object):
     ideal: ideal characteristics of a mix
     """
 
-    def __init__(self, min: transition.Transition, max: transition.Transition, ideal: transition.Transition):
+    def __init__(self, min: threshold.Threshold, max: threshold.Threshold, ideal: threshold.Threshold):
         """
         Constructs a Style instance
         """ 
