@@ -3,12 +3,12 @@ lib_path = os.path.abspath(os.path.join(__file__, '..', 'MixList'))
 sys.path.append(lib_path)
 from analyzer.analyzer import song
 from analyzer.analyzer import analysis
-from . import song_vector
 from . import transition
 from . import threshold
 from . import mix
 from . import mix_goal
 from . import style
+from typing import List
 from typing import Dict
 
 class Optimizer(object):
@@ -17,32 +17,18 @@ class Optimizer(object):
     version 1: consider only song sequences == 2
     version 2: consider song sequences >= 2 or potentially entire "goal" sections
     """
-    def __init__(self, songs, transitions, style: style.Style, goals):
+    def __init__(self, songs: List[song.Song], transitions: List[transition.Transition], style: style.Style, goals: List[mix_goal.MixGoal]):
         """
         Initializes an Optimizer object using given params.
 
         Keyword args:
         """
         # check arguments are valid
-        # loop through given songs and ensure they are valid
-        self.songs = list()
-        for s in songs:
-            assert isinstance(s, song.Song)
-            self.songs.append(s)
-        # loop through given transition and ensure they are valid 
-        self.transitions = list()
-        for t in transitions:
-            assert isinstance(t, transition.Transition)
-            self.transitions.append(t)
-        
+        self.songs = songs
+        self.transitions = transitions
         self.style = style
-        # loop through given goals and ensure they are valid
-        self.goals = list()
-        for g in goals:
-            assert isinstance(g, mix_goal.MixGoal)
-            # check that the time stamps are strictly increasing
-            if (len(self.goals) > 1):
-                assert self.goals[len(self.goals - 1)].time < g.time
+        # check that the time stamps for goals are strictly increasing
+        self.goals = goals
         self.curr_goal = goals[0]
         self.songs_played = set()
 
@@ -84,7 +70,7 @@ class Optimizer(object):
     def mix_songs(a: song.Song, b: song.Song) -> mix.Mix:
         """
         Compares two songs a and b based on properties of song skeleton.
-        Returns a mix_sequence object representing the difference between the two songs
+        Returns a Mix object representing the difference between the two songs
         in order.
         
         Keyword args:
@@ -96,7 +82,7 @@ class Optimizer(object):
     @staticmethod
     def eval_transition(a: song.Song, b: song.Song, t: transition.Transition) -> mix.Mix:
         """
-        Returns the mix_sequence between two songs evaluated for a specific transition.
+        Returns the Mix instance between two songs evaluated for a specific transition.
 
         Keyword args:
             a: the first song to be mixed fo Song type.

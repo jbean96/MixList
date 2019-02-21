@@ -1,6 +1,7 @@
 # pylint: disable=import-error
 # pylint: disable=no-name-in-module
 
+import numpy as np
 import os
 import sys
 import json
@@ -9,6 +10,14 @@ sys.path.append("..")
 
 from analyzer import analysis
 from analyzer import util
+
+def test_no_value_types():
+    a1 = analysis.Analysis()
+    assert a1.get_feature(analysis.Feature.BEATS) is None
+    assert a1.get_feature(analysis.Feature.NAME) is None
+    assert a1.get_feature(analysis.Feature.TEMPO) is np.nan
+    assert a1.get_feature(analysis.Feature.VALENCE) is np.nan
+    assert a1.get_feature(analysis.Feature.ENERGY) is np.nan
 
 def test_no_downbeats():
     beats = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
