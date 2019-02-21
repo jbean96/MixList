@@ -50,11 +50,11 @@ def compare_classifier_output(test_tuple: Tuple[str, keys.Camelot]) -> keys.KeyR
 def main(args: argparse.Namespace):
     test_tuples = get_test_tuples(args)
     p = Pool(os.cpu_count())
-    results = p.map(compare_classifier_output, test_tuples[:10])
+    results = p.map(compare_classifier_output, test_tuples)
     compiled_dict = {}
+    for relationship in keys.KeyRelationship:
+        compiled_dict[relationship] = 0
     for relationship in results:
-        if relationship not in compiled_dict:
-            compiled_dict[relationship] = 0
         compiled_dict[relationship] += 1
     score = sum(map(lambda x: compiled_dict[x] * keys.KEY_RELATIONSHIP_SCORE[x], compiled_dict.keys()))
     total = sum(compiled_dict.values())

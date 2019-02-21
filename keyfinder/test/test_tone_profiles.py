@@ -38,3 +38,6 @@ def test_round_shift():
 def test_tone_profile_size():
     assert len(tone_profiles.MAJOR_PROFILE) == util.SEMITONES
     assert len(tone_profiles.MINOR_PROFILE) == util.SEMITONES
+
+def test_octave_weights_size():
+    assert len(tone_profiles.OCTAVE_WEIGHTS) == util.OCTAVES
