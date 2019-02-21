@@ -39,7 +39,8 @@ def test_matches():
                 scores["correct"] += 1
             else:
                 scores["incorrect"] += 1
+    print(scores)
     
-    assert scores["correct"] == 4
-    assert scores["incorrect"] == 2
+    assert scores["correct"] == 3
+    assert scores["incorrect"] == 3
     assert scores["not_found"] == 0
