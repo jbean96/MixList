@@ -1,4 +1,5 @@
 import pipeclient
+from analyzer.analyzer import analysis
 
 class composer(object):
     def __init__(self, song_list, transition_list):
@@ -54,7 +55,7 @@ class composer(object):
         self.write("Select: Track=" + str(transition['following_track']))
         self.write("SelectTime: Start=" + str(transition['start_transition']) + " End=" + str(transition['end_transition']))
         self.slidingstretch(percent_change(transition['ending_tempo'], transition['leading_tempo']), 0)
-        
+
 
     def alignsongs(self):
         """
@@ -106,8 +107,81 @@ class composer(object):
                     pass
                 if type == 'crossfade':
                     self.crossfade(transition)
-                if type == 'tempomatch':
-                    self.tempomatch(transition)
+        for transition in self.transitions:
+            self.crossfade(transition)
+
+class composer_parser(object):
+    def __init__(self, transitions_array):
+        self.transitions = transitions_array
+
+    def compose(self):
+
+        if len(self.transitions) < 0:
+            return -1
+        c_songs = []
+        c_transitions = []
+
+        # Intro for first song set to time=0
+        c_songs.insert(0, {
+            'start_intro': 0,
+            'end_intro': 0,
+            'tempo': round(self.transitions[0]['song_a'].get_analysis_feature(analysis.Feature.TEMPO))
+
+        })
+
+        i = 0
+        while i < len(self.transitions):
+            # Set Outro and tempo to leading song
+            beats_array = self.transitions[i]['song_a'].get_analysis_feature(analysis.Feature.BEATS)
+            c_songs[i]['start_outro'] = beats_array[self.transitions[i]['sections']['start_a']].get_start_time().item()
+            c_songs[i]['end_outro'] = get_end_transition_timestamp(beats_array, self.transitions[i]['sections']['start_a'],
+                                                          self.transitions[i]['sections']['length'])
+
+            # Set Intro to following song
+            beats_array = self.transitions[i]['song_b'].get_analysis_feature(analysis.Feature.BEATS)
+            start_time = beats_array[self.transitions[i]['sections']['start_b']].get_start_time()
+            print("{}".format(start_time))
+            c_songs.insert(i + 1, {
+                'start_intro': start_time.item(),
+                'end_intro': get_end_transition_timestamp(beats_array, self.transitions[i]['sections']['start_b'],
+                                                          self.transitions[i]['sections']['length']),
+                'tempo': round(self.transitions[i]['song_b'].get_analysis_feature(analysis.Feature.TEMPO))
+
+            })
+            # Set transition
+            c_transitions.insert(i, {
+                'leading_track': i,
+                'following_track': i+1,
+                'start_transition': c_songs[i]['start_outro'],
+                'end_transition': c_songs[i+1]['end_intro'],
+                'leading_tempo': c_songs[i]['tempo'],
+                'ending_tempo': c_songs[i+1]['tempo'],
+                'types': self.transitions[i]['sections']['type']
+            })
+            i = i + 1
+
+        last_index = len(c_songs) -1
+        # Since last song does not have outro set to end of song
+        c_songs[last_index]['start_outro'] = 0
+        c_songs[last_index]['end_outro'] = beats_array[len(beats_array) - 1].get_start_time().item()
+
+        # Start composer, Audacity must be running
+        c = composer(c_songs, c_transitions)
+        c.new()
+        # The order of songs imported must match to order the the self.song_analysis
+        c.importaudio()
+        c.alignsongs()
+        c.applytransitions()
+        c.exportaudio()
 
 def percent_change(startValue, endValue):
     return (float(endValue) / float(startValue) - 1) * 100
+
+def get_end_transition_timestamp(beats_array, starting_index, num_beats):
+    """
+    :param beats_array: array of beats
+    :param starting_index: the start of the transition
+    :param num_beats: number of beats in the transition
+    :return: the timestamp of the ending
+    """
+    return beats_array[starting_index + num_beats].get_start_time()

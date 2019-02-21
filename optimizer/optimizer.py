@@ -150,15 +150,13 @@ class Optimizer(object):
         length = 16
         # pass transition type
         t_1 = "crossfade"
-        t_2 = "tempochange"
+        t_2 = "tempomatch"
         mix = [
-                {"song_a": a, "song_b": b, "sections": [
+                {"song_a": a, "song_b": b, "sections":
                     {"start_a": beat_a_0,"start_b": beat_b_0, "length": length, "type": [t_1, t_2]}
-                    ]
                 },
-                {"song_a": b, "song_b": c, "sections": [
+                {"song_a": b, "song_b": c, "sections":
                     {"start_a": beat_b_1, "start_b": beat_c_1, "length": length, "type": [t_1, t_2]}
-                    ]
                 }
             ]
         return mix
