@@ -27,10 +27,13 @@ def _get_matching_songs(user_song: song.Song, num_songs: int=spotify.QUERY_LIMIT
     # separate queries
     sp_features = util.sp.audio_features(tracks=map(lambda x: x.get_id(), sp_songs))
     def _lambda_func(sp_song, sp_feature):
-        sp_song.set_analysis_data(sp_feature)
-        return sp_song
+        if sp_feature is not None:
+            sp_song.set_analysis_data(sp_feature)
+            return sp_song
+        else:
+            return None
     # Map the returned audio features back to the respective SpotifySong
-    return list(map(_lambda_func, sp_songs, sp_features))
+    return list(filter(lambda x: x is not None, map(_lambda_func, sp_songs, sp_features)))
 
 def _score_matching_songs(user_song: song.Song, 
     matches: List[spotify.SpotifySong]) -> List[Tuple[spotify.SpotifySong, float]]:

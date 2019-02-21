@@ -49,6 +49,7 @@ def get_score(chroma_vector: np.ndarray, tone_profile: np.ndarray, octaves: int)
 
     return dot_product / (chroma_vector_length * tone_profile_length)
 
+# TODO: Change to be an option to collapse octaves or not instead of number of octaves..
 def classify(samples: np.ndarray, sample_rate: int, octaves: int) -> keys.Camelot:
     if octaves <= 0 or octaves > util.OCTAVES:
         raise ValueError("Octaves must be > 0 and <= %d, you provided: %d" % (util.OCTAVES, octaves))
