@@ -9,7 +9,6 @@ from optimizer import optimizer as o
 # create Threshold instances
 
 def test_mix_songs():
-
     return None
 
 def test_eval_transition():

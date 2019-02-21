@@ -1,5 +1,6 @@
 import numpy
-from analyzer.analyzer import song
+from analyzer.analyzer.song import Song
+from analyzer.analyzer.analysis import Feature
 from . import transition
 
 class Mix(object):
@@ -11,7 +12,7 @@ class Mix(object):
         - consider different sections of each song
         - consider multiple songs
     """
-    def __init__(self, track_a: song.Song, track_b: song.Song):
+    def __init__(self, track_a: Song, track_b: Song):
         """
         Keyword Args:
             track_a: a Song instance representing the starting song in this mix.
@@ -27,7 +28,8 @@ class Mix(object):
         # compute difference between the two song vectors
         self.comp_vector = numpy.array([1,1,1,1])
     
-    def __init__(self, old_mix: Mix, transition: transition.Transition, new_comp: numpy.array):
+    @classmethod
+    def from_old_mix(self, old_mix: Mix, transition: transition.Transition, new_comp: numpy.array):
         """
         Keyword Args:
             old_mix: a Mix instance to copy.
@@ -46,30 +48,37 @@ class Mix(object):
         self.tran_history = numpy.array(old_trans)
         self.comp_vector = new_comp
 
-    def apply_transition(self, transition: transition.Transition) -> Mix:
+    def apply_transition(self, tran: transition.Transition) -> Mix:
         """
         Keyword Args:
-            transition: a Transition instance to be applied to this Mix object.
+            tran: a Transition instance to be applied to this Mix object.
 
         Takes a transition and returns a new Mix object representing
         the mix between two songs using the given Transition, the new Mix object
         has the transition recorded in its history.
         """
         # apply the transition to the two songs "comparison"
+        new_comp_vector = numpy.multiply(self.comp_vector, tran.get_data())
         # return a new Mix instance with updated transition history and comparison
+        return self.from_old_mix(old_mix=self, transition=tran, new_comp=new_comp_vector)
 
-
-    def __compare_songs(self) -> numpy.array:
+    def __compare_songs(self, track_a: Song, track_b: Song) -> numpy.array:
         """
         Returns a numpy array that represents the comparison vector between track_a
-        into track_b for this mix.
+        into track_b in the form:
+        [TEMPO_DIFF, KEY_DIFF, DANCEABILITY_DIFF, ENERGY_DIFF, VALENCE_DIFF]
+        If any feature for either Song in a comparison is not analyzed that index will be NaN
         """
-        return None
-
-    # mix: [1, 2, 3, 4]
-    # transition: [(1 + 2 + 3), (1 + 2 + 3), ...]
-    # mix: [i, j, k, l]
-    # transition [i + j + k, i * 2 + j, ...]
-
-
-    # consider comparing each feature on a song to song basis
+        # compare tempo
+        tempo_diff = track_b.get_analysis_feature(Feature.TEMPO) - track_a.get_analysis_feature(Feature.TEMPO)
+        # compare key
+        # get the distance between keys according to the Camelot wheel.
+        key_diff = float("NaN") 
+        # compare danceability
+        dance_diff = track_b.get_analysis_feature(Feature.DANCEABILITY) - track_a.get_analysis_feature(Feature.DANCEABILITY)
+        # compare energy
+        energy_diff = track_b.get_analysis_feature(Feature.ENERGY) - track_a.get_analysis_feature(Feature.ENERGY) 
+        # compare valence
+        val_diff = track_b.get_analysis_feature(Feature.VALENCE) - track_a.get_analysis_feature(Feature.VALENCE)
+        # return comparison vector
+        return numpy.array([tempo_diff, key_diff, dance_diff, energy_diff, val_diff])

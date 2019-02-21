@@ -5,7 +5,7 @@ class Threshold(object):
     a DJ's style threshold or goal progress threshold.
     Can represent either a min, max, "ideal" state (no range)
 
-    For example, using features: [TEMPO, KEY, ENERGY, VALENCE]
+    For example, using features: [TEMPO, KEY, DANCEABILITY, ENERGY, VALENCE]
     """
 
     def __init__(self, values: numpy.array):

@@ -70,7 +70,7 @@ class Optimizer(object):
     def mix_songs(a: song.Song, b: song.Song) -> mix.Mix:
         """
         Compares two songs a and b based on properties of song skeleton.
-        Returns a mix_sequence object representing the difference between the two songs
+        Returns a Mix object representing the difference between the two songs
         in order.
         
         Keyword args:
@@ -82,7 +82,7 @@ class Optimizer(object):
     @staticmethod
     def eval_transition(a: song.Song, b: song.Song, t: transition.Transition) -> mix.Mix:
         """
-        Returns the mix_sequence between two songs evaluated for a specific transition.
+        Returns the Mix instance between two songs evaluated for a specific transition.
 
         Keyword args:
             a: the first song to be mixed fo Song type.
