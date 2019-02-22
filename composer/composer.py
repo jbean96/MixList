@@ -62,6 +62,7 @@ class composer(object):
         for each song in songs[], trim the unused edges, then align each song
         """
         i = 0
+        offset = 0
         for dict in self.songs:
             self.trimsong(i, dict['start_intro'], dict['end_outro'])
             # after trim, guaranteed to have song selected
@@ -81,7 +82,7 @@ class composer(object):
                 self.write("SelRestore: ")
                 self.write("Align_StartToSelEnd: ")
                 shiftRight = self.songs[i - 1]['start_outro'] - self.songs[i]['start_intro']
-
+                offset = offset + shiftRight
                 dict['start_intro'] = self.songs[i - 1]["start_outro"]
                 dict['end_intro'] = dict['end_intro'] + shiftRight
                 dict['start_outro'] = dict['start_outro'] + shiftRight
@@ -91,7 +92,7 @@ class composer(object):
                 self.write("SelectTime: Start=0 End=" + str(dict["start_outro"]))
                 self.write("SelSave: ")
 
-                for
+            # TODO: Update offsets for transitions
             i = i + 1
 
     def trimsong(self, track, start_time, end_time):
@@ -116,6 +117,7 @@ class composer_parser(object):
     def __init__(self, transitions_array):
         self.transitions = transitions_array
 
+    # TODO: handle multiple sections per transition
     def compose(self):
 
         if len(self.transitions) < 0:
@@ -135,18 +137,18 @@ class composer_parser(object):
         while i < len(self.transitions):
             # Set Outro and tempo to leading song
             beats_array = self.transitions[i]['song_a'].get_analysis_feature(analysis.Feature.BEATS)
-            c_songs[i]['start_outro'] = beats_array[self.transitions[i]['sections']['start_a']].get_start_time().item()
-            c_songs[i]['end_outro'] = get_end_transition_timestamp(beats_array, self.transitions[i]['sections']['start_a'],
-                                                          self.transitions[i]['sections']['length'])
+            c_songs[i]['start_outro'] = beats_array[self.transitions[i]['start_a']].get_start_time().item()
+            c_songs[i]['end_outro'] = get_end_transition_timestamp(beats_array, self.transitions[i]['start_a'],
+                                                          self.transitions[i]['sections'][0]['length'])
 
             # Set Intro to following song
             beats_array = self.transitions[i]['song_b'].get_analysis_feature(analysis.Feature.BEATS)
-            start_time = beats_array[self.transitions[i]['sections']['start_b']].get_start_time()
+            start_time = beats_array[self.transitions[i]['start_b']].get_start_time()
             print("{}".format(start_time))
             c_songs.insert(i + 1, {
                 'start_intro': start_time.item(),
-                'end_intro': get_end_transition_timestamp(beats_array, self.transitions[i]['sections']['start_b'],
-                                                          self.transitions[i]['sections']['length']),
+                'end_intro': get_end_transition_timestamp(beats_array, self.transitions[i]['start_b'],
+                                                          self.transitions[i]['sections'][0]['length']),
                 'tempo': round(self.transitions[i]['song_b'].get_analysis_feature(analysis.Feature.TEMPO))
 
             })
@@ -158,7 +160,7 @@ class composer_parser(object):
                 'end_transition': c_songs[i+1]['end_intro'],
                 'leading_tempo': c_songs[i]['tempo'],
                 'ending_tempo': c_songs[i+1]['tempo'],
-                'types': self.transitions[i]['sections']['type']
+                'types': self.transitions[i]['sections'][0]['type']
             })
             i = i + 1
 
