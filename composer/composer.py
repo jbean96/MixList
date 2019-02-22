@@ -90,6 +90,8 @@ class composer(object):
                 # move cursor to next position
                 self.write("SelectTime: Start=0 End=" + str(dict["start_outro"]))
                 self.write("SelSave: ")
+
+                for
             i = i + 1
 
     def trimsong(self, track, start_time, end_time):
