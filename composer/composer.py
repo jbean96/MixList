@@ -34,65 +34,89 @@ class composer(object):
         self.write("Export:")
 
     def crossfade(self, transition):
-        # fade out out_track
         self.write("Select: Track=" + str(transition['leading_track']))
-        self.write("SelectTime: Start=" + str(transition['start_transition']) + " End=" + str(transition['end_transition']))
-        self.write("Fade Out: ")
+        self.write("SelectTracks: Track=" + str(transition['following_track']) + " Mode=Add")
+        self.write("SelectTime: Start=" + str(transition['leading_start_transition']) + " End=" + str(transition['leading_end_transition']))
+        self.write("CrossfadeTracks: type=ConstantPower1 direction=OutIn")
 
-        # fade in in_track
-        self.write("Select: Track=" + str(transition['following_track']))
-        self.write("SelectTime: Start=" + str(transition['start_transition']) + " End=" + str(transition['end_transition']))
+    # TODO: make both fadein and fadeout transition agnostic (since only happens to one track)
+    def fadein(self, transition):
+        self.write("Select: Track=" + str(transition['leading_track']))
+        self.write("SelectTime: Start=" + str(transition['leading_start_transition']) + " End=" + str(transition['leading_end_transition']))
         self.write("Fade In:")
+
+    def fadeout(self, transition):
+        self.write("Select: Track=" + str(transition['leading_track']))
+        self.write("SelectTime: Start=" + str(transition['leading_start_transition']) + " End=" + str(transition['leading_end_transition']))
+        self.write("Fade Out: ")
 
     def slidingstretch(self, RatePercentChangeStart, RatePercentChangeEnd):
         self.write("SlidingStretch: RatePercentChangeStart=" + str(RatePercentChangeStart) +
-                   ", RatePercentChangeEnd=" + str(RatePercentChangeEnd))
+                   " RatePercentChangeEnd=" + str(RatePercentChangeEnd))
 
     def tempomatch(self, transition):
-        self.write("Select: Track=" + str(transition['leading_track']))
-        self.write("SelectTime: Start=" + str(transition['start_transition']) + " End=" + str(transition['end_transition']))
-        self.slidingstretch(0, percent_change(transition["leading_tempo"], transition["ending_tempo"]))
+        """
+        Script for tempo matching two tracks together. Must be called on each transition in reverse order
+        """
+        # Stretch following track
         self.write("Select: Track=" + str(transition['following_track']))
-        self.write("SelectTime: Start=" + str(transition['start_transition']) + " End=" + str(transition['end_transition']))
-        self.slidingstretch(percent_change(transition['ending_tempo'], transition['leading_tempo']), 0)
+        self.write("SelectTime: Start=" + str(transition['following_start_transition']) + " End=" + str(transition['following_end_transition']))
+        self.slidingstretch(percent_change(transition['following_tempo'], transition['leading_tempo']), 0)
 
+        # Stretch leading track
+        self.write("Select: Track=" + str(transition['leading_track']))
+        self.write("SelectTime: Start=" + str(transition['leading_start_transition']) + " End=" + str(transition['leading_end_transition']))
+        self.slidingstretch(0, percent_change(transition["leading_tempo"], transition["following_tempo"]))
+
+    def slidingstretchtest(self, startRate, endRate):
+        self.write("Select: Track=0")
+        self.write("SelectTime: Start=0 End=5.670")
+        self.slidingstretch(startRate, endRate)
 
     def alignsongs(self):
         """
         for each song in songs[], trim the unused edges, then align each song
         """
-        i = 0
+        # First song in list has no intro transition and can be shift left if trimmed from the front
+        song = self.songs[0]
+        self.trimsong(0, song['start_intro'], song['end_outro'])
+        # after trim, guaranteed to have song selected
+        # first song in mix, align front and update values
+        self.write("Align_StartToZero: ")
+        shiftLeft = song['start_intro']
+        song['start_intro'] = song['start_intro'] - shiftLeft
+        song['end_intro'] = song['end_intro'] - shiftLeft
+        song['start_outro'] = song['start_outro'] - shiftLeft
+        song['end_outro'] = song['end_outro'] - shiftLeft
+
+        # move cursor to the start of the next transition and store location
+        self.write("SelectTime: Start=0 End=" + str(song['start_outro']))
+        self.write("SelSave: ")
+
+        i = 1
         offset = 0
-        for dict in self.songs:
-            self.trimsong(i, dict['start_intro'], dict['end_outro'])
+        # Remainder of songs are trimmed and shifted right
+        for song in self.songs[1:]:
+            self.trimsong(i, song['start_intro'], song['end_outro'])
             # after trim, guaranteed to have song selected
-            if i == 0:
-                # first song in mix, align front and update values
-                self.write("Align_StartToZero: ")
-                shiftLeft = dict['start_intro']
-                dict['start_intro'] = dict['start_intro'] - shiftLeft
-                dict['end_intro'] = dict['end_intro'] - shiftLeft
-                dict['start_outro'] = dict['start_outro'] - shiftLeft
-                dict['end_outro'] = dict['end_outro'] - shiftLeft
+            self.write("SelRestore: ")
+            self.write("Align_StartToSelEnd: ")
+            shiftRight = self.songs[i - 1]['start_outro'] - self.songs[i]['start_intro']
+            offset = offset + shiftRight
+            song['start_intro'] = self.songs[i - 1]["start_outro"]
+            song['end_intro'] = song['end_intro'] + shiftRight
+            song['start_outro'] = song['start_outro'] + shiftRight
+            song['end_outro'] = song['end_outro'] + shiftRight
 
-                # move cursor to the start of the next transition and store location
-                self.write("SelectTime: Start=0 End=" + str(dict['start_outro']))
-                self.write("SelSave: ")
-            else:
-                self.write("SelRestore: ")
-                self.write("Align_StartToSelEnd: ")
-                shiftRight = self.songs[i - 1]['start_outro'] - self.songs[i]['start_intro']
-                offset = offset + shiftRight
-                dict['start_intro'] = self.songs[i - 1]["start_outro"]
-                dict['end_intro'] = dict['end_intro'] + shiftRight
-                dict['start_outro'] = dict['start_outro'] + shiftRight
-                dict['end_outro'] = dict['end_outro'] + shiftRight
+            # move cursor to next position
+            self.write("SelectTime: Start=0 End=" + str(song["start_outro"]))
+            self.write("SelSave: ")
 
-                # move cursor to next position
-                self.write("SelectTime: Start=0 End=" + str(dict["start_outro"]))
-                self.write("SelSave: ")
-
-            # TODO: Update offsets for transitions
+            # Set transition times
+            self.transitions[i - 1]['following_start_transition'] = song['start_intro']
+            self.transitions[i - 1]['following_end_transition'] = song['end_intro']
+            self.transitions[i - 1]['leading_start_transition'] = self.songs[i-1]['start_outro']
+            self.transitions[i - 1]['leading_end_transition'] = self.songs[i-1]['end_outro']
             i = i + 1
 
     def trimsong(self, track, start_time, end_time):
@@ -104,14 +128,25 @@ class composer(object):
         self.write("Trim: ")
 
     def applytransitions(self):
+        """
+        Apply all transitions. Must be called last just before export()
+        """
         for transition in self.transitions:
             for type in transition['types']:
                 if type == 'none':
                     pass
                 if type == 'crossfade':
                     self.crossfade(transition)
-        for transition in self.transitions:
-            self.crossfade(transition)
+
+        # Last thing we do is loop through the songs stretching and merging in reverse order
+        for transition in reversed(self.transitions):
+            if 'tempomatch' in transition['types']:
+                self.tempomatch(transition)
+            # merge following track into leading track to preserve track alignment
+            self.write("Select: Track=" + str(transition['leading_track']))
+            self.write("SelectTracks: Track=" + str(transition['following_track']) + " Mode=Add")
+            self.write("MixAndRender:")
+
 
 class composer_parser(object):
     def __init__(self, transitions_array):
@@ -134,6 +169,7 @@ class composer_parser(object):
         })
 
         i = 0
+        beats_array = []
         while i < len(self.transitions):
             # Set Outro and tempo to leading song
             beats_array = self.transitions[i]['song_a'].get_analysis_feature(analysis.Feature.BEATS)
@@ -156,10 +192,8 @@ class composer_parser(object):
             c_transitions.insert(i, {
                 'leading_track': i,
                 'following_track': i+1,
-                'start_transition': c_songs[i]['start_outro'],
-                'end_transition': c_songs[i+1]['end_intro'],
                 'leading_tempo': c_songs[i]['tempo'],
-                'ending_tempo': c_songs[i+1]['tempo'],
+                'following_tempo': c_songs[i+1]['tempo'],
                 'types': self.transitions[i]['sections'][0]['type']
             })
             i = i + 1
@@ -172,7 +206,7 @@ class composer_parser(object):
         # Start composer, Audacity must be running
         c = composer(c_songs, c_transitions)
         c.new()
-        # The order of songs imported must match to order the the self.song_analysis
+        # The order of songs imported must match order of c_songs
         c.importaudio()
         c.alignsongs()
         c.applytransitions()

@@ -27,19 +27,23 @@ song2 = {
 transition0 = {
     'leading_track': 0,
     'following_track': 1,
-    'start_transition': song0['start_outro'],
-    'end_transition': song0['end_outro'],
+    'leading_start_transition': song0['start_outro'],
+    'leading_end_transition': song0['end_outro'],
+    'following_start_transition': song1['start_intro'],
+    'following_end_transition': song1['end_intro'],
     'leading_tempo': 110,
-    'ending_tempo': 120,
+    'following_tempo': 120,
     'types': ['tempomatch', 'crossfade']
     }
 transition1 = {
     'leading_track': 1,
     'following_track': 2,
-    'start_transition': song1['start_outro'],
-    'end_transition' : song1['end_outro'],
-    'leading_tempo' : 120,
-    'ending_tempo' : 125,
+    'leading_start_transition': song1['start_outro'],
+    'leading_end_transition': song1['end_outro'],
+    'following_start_transition': song2['start_intro'],
+    'following_end_transition': song2['end_intro'],
+    'leading_tempo': 120,
+    'following_tempo': 125,
     'types': ['tempomatch', 'crossfade']
     }
 
