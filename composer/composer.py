@@ -60,15 +60,30 @@ class composer(object):
         """
         Script for tempo matching two tracks together. Must be called on each transition in reverse order
         """
+        leading_tempo = transition["leading_tempo"]
+        following_tempo = transition["following_tempo"]
+        print('leading_tempo = ' + str(leading_tempo))
+        print('following_tempo = ' + str(following_tempo))
+        if leading_tempo == following_tempo:
+            return
+        elif leading_tempo < following_tempo:
+            if (following_tempo - leading_tempo) > abs(following_tempo/2 - leading_tempo):
+                following_tempo = following_tempo/2
+        else:
+            if (leading_tempo - following_tempo) > abs(leading_tempo/2 - leading_tempo):
+                leading_tempo = leading_tempo/2
+
+        print('leading_tempo = ' + str(leading_tempo))
+        print('following_tempo = ' + str(following_tempo))
         # Stretch following track
         self.write("Select: Track=" + str(transition['following_track']))
         self.write("SelectTime: Start=" + str(transition['following_start_transition']) + " End=" + str(transition['following_end_transition']))
-        self.slidingstretch(percent_change(transition['following_tempo'], transition['leading_tempo']), 0)
+        self.slidingstretch(percent_change(following_tempo, leading_tempo), 0)
 
         # Stretch leading track
         self.write("Select: Track=" + str(transition['leading_track']))
         self.write("SelectTime: Start=" + str(transition['leading_start_transition']) + " End=" + str(transition['leading_end_transition']))
-        self.slidingstretch(0, percent_change(transition["leading_tempo"], transition["following_tempo"]))
+        self.slidingstretch(0, percent_change(leading_tempo, following_tempo))
 
     def slidingstretchtest(self, startRate, endRate):
         self.write("Select: Track=0")
