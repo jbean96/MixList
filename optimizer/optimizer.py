@@ -38,6 +38,7 @@ class Optimizer(object):
 
         Keyword args:
         """
+        NotImplementedError()
 
     def generate_mixtape(self):
         """
