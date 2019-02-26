@@ -8,7 +8,6 @@ from . import threshold
 from . import mix
 from . import mix_goal
 from . import style
-from typing import List
 from typing import Dict
 
 class Optimizer(object):
@@ -17,18 +16,32 @@ class Optimizer(object):
     version 1: consider only song sequences == 2
     version 2: consider song sequences >= 2 or potentially entire "goal" sections
     """
-    def __init__(self, songs: List[song.Song], transitions: List[transition.Transition], style: style.Style, goals: List[mix_goal.MixGoal]):
+    def __init__(self, songs, transitions, style: style.Style, goals):
         """
         Initializes an Optimizer object using given params.
 
         Keyword args:
         """
         # check arguments are valid
-        self.songs = songs
-        self.transitions = transitions
+        # loop through given songs and ensure they are valid
+        self.songs = list()
+        for s in songs:
+            assert isinstance(s, song.Song)
+            self.songs.append(s)
+        # loop through given transition and ensure they are valid 
+        self.transitions = list()
+        for t in transitions:
+            assert isinstance(t, transition.Transition)
+            self.transitions.append(t)
+        
         self.style = style
-        # check that the time stamps for goals are strictly increasing
-        self.goals = goals
+        # loop through given goals and ensure they are valid
+        self.goals = list()
+        for g in goals:
+            assert isinstance(g, mix_goal.MixGoal)
+            # check that the time stamps are strictly increasing
+            if (len(self.goals) > 1):
+                assert self.goals[len(self.goals - 1)].time < g.time
         self.curr_goal = goals[0]
         self.songs_played = set()
 
@@ -71,7 +84,7 @@ class Optimizer(object):
     def mix_songs(a: song.Song, b: song.Song) -> mix.Mix:
         """
         Compares two songs a and b based on properties of song skeleton.
-        Returns a Mix object representing the difference between the two songs
+        Returns a mix_sequence object representing the difference between the two songs
         in order.
         
         Keyword args:
@@ -83,7 +96,7 @@ class Optimizer(object):
     @staticmethod
     def eval_transition(a: song.Song, b: song.Song, t: transition.Transition) -> mix.Mix:
         """
-        Returns the Mix instance between two songs evaluated for a specific transition.
+        Returns the mix_sequence between two songs evaluated for a specific transition.
 
         Keyword args:
             a: the first song to be mixed fo Song type.
@@ -126,26 +139,24 @@ class Optimizer(object):
         Song a --> Song b --> Song c using 16 beat crossfade/tempochange transition.
         """
         # get beat 16 beats from the end of Song a for transition 2
-        beat_a_0 = len(a.get_analysis_feature(analysis.Feature.BEATS)) - 17
+        beat_a_0 = len(a.get_analysis_feature(analysis.Feature.BEATS)) - 33
         # start beat 0 for Song b on transition 0
         beat_b_0 = 0
         # start beat 16 beats from end of Song b for transition 1
-        beat_b_1 = len(b.get_analysis_feature(analysis.Feature.BEATS)) - 17
+        beat_b_1 = len(b.get_analysis_feature(analysis.Feature.BEATS)) - 33
         # start beat 0 for Song c on transition 1
         beat_c_1 = 0
         # transition is length is always 16
-        length = 16
+        length = 32
         # pass transition type
         t_1 = "crossfade"
-        t_2 = "tempochange"
+        t_2 = "tempomatch"
         mix = [
-                {"song_a": a, "song_b": b, "sections": [
-                    {"start_a": beat_a_0,"start_b": beat_b_0, "length": length, "type": [t_1, t_2]}
-                    ]
+                {"song_a": a, "song_b": b, "start_a": beat_a_0,"start_b": beat_b_0, "sections":
+                    [{"offset": 0, "length": length, "type": [t_1, t_2]}]
                 },
-                {"song_a": b, "song_b": c, "sections": [
-                    {"start_a": beat_b_1, "start_b": beat_c_1, "length": length, "type": [t_1, t_2]}
-                    ]
+                {"song_a": b, "song_b": c, "start_a": beat_b_1, "start_b": beat_c_1, "sections":
+                    [{"offset": 0, "length": length, "type": [t_1, t_2]}]
                 }
             ]
         return mix

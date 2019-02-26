@@ -79,6 +79,10 @@ def similarity(song1: Song, song2: Song, features: List[analysis.Feature]=None) 
         if feature not in comp_dict:
             raise Exception('No comparison setup for feature: %s' % feature)
 
+        # If one of the songs just doesn't have it analyzed...
+        # TODO: Should it just set 0 for that comparison score?
+        if not song1.is_analyzed(feature) or not song2.is_analyzed(feature):
+            raise Exception("Feature %s is not analyzed for at least one of the songs being compared" % feature)
         comp = comp_dict[feature]['method'](song1.get_analysis_feature(feature), 
             song2.get_analysis_feature(feature))
         similarity += comp * comp_dict[feature]['weight']

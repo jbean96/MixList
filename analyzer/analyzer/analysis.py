@@ -1,5 +1,6 @@
 import librosa
 import math
+import numpy as np
 import pickle
 from enum import Enum, auto
 from typing import Any, Dict, List, Tuple
@@ -55,6 +56,23 @@ class Feature(Enum):
     TIME_SIGNATURE = auto()
     VALENCE = auto()
 
+FEATURE_TYPES = {
+    Feature.BEATS : List[Beat],
+    Feature.DANCEABILITY : float,
+    Feature.DURATION : float,
+    Feature.ENERGY : float,
+    Feature.KEY : keys.Camelot,
+    Feature.LOUDNESS : float,
+    Feature.NAME : str,
+    Feature.TEMPO : float,
+    Feature.TIME_SIGNATURE : int,
+    Feature.VALENCE : float
+}
+
+# sanity check
+for f in Feature:
+    assert f in FEATURE_TYPES
+
 def is_feature(feature: Feature) -> bool:
     return feature in Feature.__members__.values()
 
@@ -96,7 +114,7 @@ class Analysis:
 
         self._features[feature] = value
 
-    def get_feature(self, feature: Feature) -> Feature:
+    def get_feature(self, feature: Feature) -> Any:
         """
         Gets a specified Analysis.Feature from this Analysis, or None if it isn't an analyzed feature
 
@@ -108,7 +126,10 @@ class Analysis:
             raise ValueError("%s is not a valid Feature" % str(feature))
 
         if feature not in self._features:
-            return None
+            if FEATURE_TYPES[feature] == int or FEATURE_TYPES[feature] == float:
+                return np.nan
+            else:
+                return None
 
         return self._features[feature]
     

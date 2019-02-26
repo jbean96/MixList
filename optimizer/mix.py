@@ -29,7 +29,7 @@ class Mix(object):
         self.comp_vector = numpy.array([1,1,1,1])
     
     @classmethod
-    def from_old_mix(self, old_mix: Mix, transition: transition.Transition, new_comp: numpy.array):
+    def from_old_mix(self, old_mix: 'Mix', transition: transition.Transition, new_comp: numpy.array):
         """
         Keyword Args:
             old_mix: a Mix instance to copy.
@@ -48,7 +48,7 @@ class Mix(object):
         self.tran_history = numpy.array(old_trans)
         self.comp_vector = new_comp
 
-    def apply_transition(self, tran: transition.Transition) -> Mix:
+    def apply_transition(self, tran: transition.Transition) -> 'Mix':
         """
         Keyword Args:
             tran: a Transition instance to be applied to this Mix object.

@@ -18,6 +18,8 @@ class SquashMethod(Enum):
     AVERAGE = auto()
     SUM = auto()
 
+DEFAULT_SQUASH_METHOD = SquashMethod.SUM
+
 def squash_chroma_matrix(chroma_cq: np.ndarray, method: SquashMethod) -> np.ndarray:
     if method == SquashMethod.NORMALIZE:
         sum_rows = np.sum(chroma_cq, axis=1)
@@ -47,8 +49,7 @@ def get_score(chroma_vector: np.ndarray, tone_profile: np.ndarray, octaves: int)
 
     return dot_product / (chroma_vector_length * tone_profile_length)
 
-DEFAULT_SQUASH_METHOD = SquashMethod.NORMALIZE
-
+# TODO: Change to be an option to collapse octaves or not instead of number of octaves..
 def classify(samples: np.ndarray, sample_rate: int, octaves: int) -> keys.Camelot:
     if octaves <= 0 or octaves > util.OCTAVES:
         raise ValueError("Octaves must be > 0 and <= %d, you provided: %d" % (util.OCTAVES, octaves))
@@ -58,7 +59,7 @@ def classify(samples: np.ndarray, sample_rate: int, octaves: int) -> keys.Camelo
     if octaves == 1:
         chroma_cq = librosa.feature.chroma_cqt(y=samples, sr=sample_rate)
     else: 
-        chroma_cq = librosa.core.cqt(y=samples, sr=sample_rate, n_bins=util.SEMITONES * octaves, bins_per_octave=util.SEMITONES)
+        chroma_cq = np.abs(librosa.core.cqt(y=samples, sr=sample_rate, n_bins=util.SEMITONES * octaves, bins_per_octave=util.SEMITONES))
     squashed = squash_chroma_matrix(chroma_cq, DEFAULT_SQUASH_METHOD)
     scores = {}
     for mode in keys.Mode:
