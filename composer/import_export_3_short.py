@@ -9,7 +9,7 @@ from analyzer.analyzer import usersong, analysis
 """
 110 bpm -> 140 bpm -> 120 bpm
 """
-songs_path = os.path.join("..", "testmp3s")
+songs_path = os.path.join(os.path.abspath(".."), "testmp3s")
 filepaths = [os.path.join(songs_path, '110bpm_8bars.mp3'),
              os.path.join(songs_path, '140bpm_8bars.mp3'),
              os.path.join(songs_path, '120bpm_8bars.mp3')]
