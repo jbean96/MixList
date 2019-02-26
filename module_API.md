@@ -42,12 +42,13 @@
 - `ordered list of transition dicts (size : N - 1)` [{transition from A to B}, {transition from B to C}, ... ,{}]
     - `song_a` Track a of transition, analyzed Song object.
     - `song_b` Track b of transition, analyzed Song object.
+    - `start_a` index of track A start beat (index : integer)
+    - `start_b` index of track B start beat (index : integer)
     - `sections` [{section 0}, {section 1}, ... , {}]
         - `section`:
-            - index of track A start beat (index : integer)
-            - index of track B start beat (index : integer)
-            - number of beats in the section (length : integer)
-            - transitions applied to that section (name of transition : string) --> [transition_name_1, transition_name_2, ... , transition_name_N]
+            - `offset` offset of the section start in beats from start_a/star_b intersection (offset : integer)
+            - `length` number of beats in the section (length : integer)
+            - `type` transitions applied to that section (name of transition : string) --> [transition_name_1, transition_name_2, ... , transition_name_N]
             
 ## Composer
 
