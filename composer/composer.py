@@ -77,6 +77,7 @@ class composer(object):
         """
         for each song in songs[], trim the unused edges, then align each song
         """
+        # TODO: Do we want to support changes to the beginning of first song of mix? Currently supporting trimming only
         # First song in list has no intro transition and can be shift left if trimmed from the front
         song = self.songs[0]
         self.trimsong(0, song['start_intro'], song['end_outro'])
@@ -93,17 +94,19 @@ class composer(object):
         self.write("SelectTime: Start=0 End=" + str(song['start_outro']))
         self.write("SelSave: ")
 
-        i = 1
-        offset = 0
+        # Set transition times
+        self.transitions[0]['following_start_transition'] = song['start_intro']
+        self.transitions[0]['following_end_transition'] = song['end_intro']
+
+        song_i = 1
         # Remainder of songs are trimmed and shifted right
         for song in self.songs[1:]:
-            self.trimsong(i, song['start_intro'], song['end_outro'])
+            self.trimsong(song_i, song['start_intro'], song['end_outro'])
             # after trim, guaranteed to have song selected
             self.write("SelRestore: ")
             self.write("Align_StartToSelEnd: ")
-            shiftRight = self.songs[i - 1]['start_outro'] - self.songs[i]['start_intro']
-            offset = offset + shiftRight
-            song['start_intro'] = self.songs[i - 1]["start_outro"]
+            shiftRight = self.songs[song_i - 1]['start_outro'] - self.songs[song_i]['start_intro']
+            song['start_intro'] = self.songs[song_i - 1]["start_outro"]
             song['end_intro'] = song['end_intro'] + shiftRight
             song['start_outro'] = song['start_outro'] + shiftRight
             song['end_outro'] = song['end_outro'] + shiftRight
@@ -112,12 +115,13 @@ class composer(object):
             self.write("SelectTime: Start=0 End=" + str(song["start_outro"]))
             self.write("SelSave: ")
 
+            transition_i = song_i - 1
             # Set transition times
-            self.transitions[i - 1]['following_start_transition'] = song['start_intro']
-            self.transitions[i - 1]['following_end_transition'] = song['end_intro']
-            self.transitions[i - 1]['leading_start_transition'] = self.songs[i-1]['start_outro']
-            self.transitions[i - 1]['leading_end_transition'] = self.songs[i-1]['end_outro']
-            i = i + 1
+            self.transitions[transition_i]['following_start_transition'] = song['start_intro']
+            self.transitions[transition_i]['following_end_transition'] = song['end_intro']
+            self.transitions[transition_i]['leading_start_transition'] = self.songs[transition_i]['start_outro']
+            self.transitions[transition_i]['leading_end_transition'] = self.songs[transition_i]['end_outro']
+            song_i = song_i + 1
 
     def trimsong(self, track, start_time, end_time):
         """
@@ -165,7 +169,6 @@ class composer_parser(object):
             'start_intro': 0,
             'end_intro': 0,
             'tempo': round(self.transitions[0]['song_a'].get_analysis_feature(analysis.Feature.TEMPO))
-
         })
 
         i = 0

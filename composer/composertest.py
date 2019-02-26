@@ -4,8 +4,8 @@ sys.path.append("../..")
 import composer
 
 song0 = {
-    'start_intro': 0.00,
-    'end_intro': 0.00,
+    'start_intro': 0.031,
+    'end_intro': 0.031,
     'start_outro': 4.3965,
     'end_outro' : 8.7605,
     'tempo' : 110
@@ -21,16 +21,12 @@ song2 = {
     'start_intro': 0.031,
     'end_intro': 3.87,
     'start_outro': 7.711,
-    'end_outro': 15.41,
+    'end_outro': 11.551,
     'tempo': 125
     }
 transition0 = {
     'leading_track': 0,
     'following_track': 1,
-    'leading_start_transition': song0['start_outro'],
-    'leading_end_transition': song0['end_outro'],
-    'following_start_transition': song1['start_intro'],
-    'following_end_transition': song1['end_intro'],
     'leading_tempo': 110,
     'following_tempo': 120,
     'types': ['tempomatch', 'crossfade']
@@ -38,10 +34,6 @@ transition0 = {
 transition1 = {
     'leading_track': 1,
     'following_track': 2,
-    'leading_start_transition': song1['start_outro'],
-    'leading_end_transition': song1['end_outro'],
-    'following_start_transition': song2['start_intro'],
-    'following_end_transition': song2['end_intro'],
     'leading_tempo': 120,
     'following_tempo': 125,
     'types': ['tempomatch', 'crossfade']
