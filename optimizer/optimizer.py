@@ -138,15 +138,15 @@ class Optimizer(object):
         Song a --> Song b --> Song c using 16 beat crossfade/tempochange transition.
         """
         # get beat 16 beats from the end of Song a for transition 2
-        beat_a_0 = len(a.get_analysis_feature(analysis.Feature.BEATS)) - 17
+        beat_a_0 = len(a.get_analysis_feature(analysis.Feature.BEATS)) - 33
         # start beat 0 for Song b on transition 0
         beat_b_0 = 0
         # start beat 16 beats from end of Song b for transition 1
-        beat_b_1 = len(b.get_analysis_feature(analysis.Feature.BEATS)) - 17
+        beat_b_1 = len(b.get_analysis_feature(analysis.Feature.BEATS)) - 33
         # start beat 0 for Song c on transition 1
         beat_c_1 = 0
         # transition is length is always 16
-        length = 16
+        length = 32
         # pass transition type
         t_1 = "crossfade"
         t_2 = "tempomatch"

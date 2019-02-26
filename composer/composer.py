@@ -1,11 +1,13 @@
+import os
 import pipeclient
 from analyzer.analyzer import analysis
 
 class composer(object):
-    def __init__(self, song_list, transition_list):
+    def __init__(self, song_list, transition_list, filepaths):
         self.client = pipeclient.PipeClient()
         self.songs = song_list
         self.transitions = transition_list
+        self.filepaths = filepaths
 
     def write(self, command):
         self.client.write(command)
@@ -21,10 +23,10 @@ class composer(object):
 
     def importaudio(self):
         """
-        Opens Audacity import dialog box.
-        User must navigate to playlist directory and select songs for import
+        Imports files
         """
-        self.write("ImportAudio:")
+        for filepath in self.filepaths:
+            self.write("Import2:Filename=" + filepath)
 
     def exportaudio(self):
         """
@@ -152,9 +154,11 @@ class composer(object):
             self.write("MixAndRender:")
 
 
+# TODO: Change filepath to song analysis_feature
 class composer_parser(object):
-    def __init__(self, transitions_array):
+    def __init__(self, transitions_array, filepaths):
         self.transitions = transitions_array
+        self.filepaths = filepaths
 
     # TODO: handle multiple sections per transition
     def compose(self):
@@ -207,8 +211,9 @@ class composer_parser(object):
         c_songs[last_index]['end_outro'] = beats_array[len(beats_array) - 1].get_start_time().item()
 
         # Start composer, Audacity must be running
-        c = composer(c_songs, c_transitions)
-        c.new()
+        c = composer(c_songs, c_transitions, self.filepaths)
+        # calling new just before import throws an error because the window can't load fast enough
+        # c.new()
         # The order of songs imported must match order of c_songs
         c.importaudio()
         c.alignsongs()
