@@ -1,3 +1,4 @@
+import eyed3.id3
 from typing import List, Tuple
 
 from . import spotify
@@ -9,10 +10,24 @@ from . import song
 MAX_THRESHOLD = 0.975
 # A minimum threshold can be specified such that if no song has a similarity score greater than
 # the minimum threshold we don't consider there to be a matching song in the Spotify API
-MIN_THRESHOLD = 0.95
+MIN_THRESHOLD = 0.90
 # Specifies how many of the first songs to check to see if they are above the threshold to
 # automatically select that as the matching song, will otherwise use the max song similarity
 NUM_SONGS = 3
+
+def _construct_query_from_id3(id3_tag: eyed3.id3.tag.Tag) -> str:
+    track_name = id3_tag.title
+    artist = id3_tag.album_artist if id3_tag.album_artist is not None else id3_tag.artist
+    if track_name is None:
+        return None
+    query = 'track:%s' % track_name
+    if artist is not None:
+        query += ' artist:%s' % artist
+    return query
+
+def _construct_query_from_name(name: str) -> str:
+    query = 'track:%s' % name
+    return query
 
 def _get_matching_songs(user_song: song.Song, num_songs: int=spotify.QUERY_LIMIT) -> List[spotify.SpotifySong]:
     """
@@ -22,7 +37,14 @@ def _get_matching_songs(user_song: song.Song, num_songs: int=spotify.QUERY_LIMIT
     @param num_songs: The number of songs to query on the Spotify
     @return: A list of matching SpotifySong objects, queried by name
     """
-    sp_songs = spotify.search_songs(user_song.get_name(), num_songs)
+    sp_songs = None
+    if user_song.get_id3() is not None:
+        query = _construct_query_from_id3(user_song.get_id3())
+        if query is not None:
+            sp_songs = spotify.search_songs(query, num_songs)
+    if sp_songs is None or len(sp_songs) == 0:
+        query = _construct_query_from_name(user_song.get_name())
+        sp_songs = spotify.search_songs(query, num_songs)
     # Queries the Spotify API with a batch of the songs instead of len(sp_songs)
     # separate queries
     sp_features = util.sp.audio_features(tracks=map(lambda x: x.get_id(), sp_songs))

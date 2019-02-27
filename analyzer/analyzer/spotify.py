@@ -1,3 +1,4 @@
+import re
 from typing import List, Dict, Any
 
 from . import keys
@@ -83,7 +84,7 @@ class SpotifySong(Song):
             if analysis_feature_map[analysis_feature] in sp_features:
                 self.set_analysis_feature(analysis_feature, sp_features[analysis_feature_map[analysis_feature]])
 
-def search_songs(song_name: str, limit: int=QUERY_LIMIT) -> List[SpotifySong]:
+def search_songs(query: str, limit: int=QUERY_LIMIT) -> List[SpotifySong]:
     """
     Searches for the matching songs in the Spotify API and returns them as list of potential
     matches, searches just based on track name
@@ -92,5 +93,6 @@ def search_songs(song_name: str, limit: int=QUERY_LIMIT) -> List[SpotifySong]:
     @param limit: The max number of songs to return (defaults to SpotifySong.QUERY_LIMIT)
     @return: A list of SpotifySong objects corresponding to the returned songs from the query
     """
-    result = util.sp.search(q='track:%s' % song_name, type='track', limit=limit)
+    query = re.sub('[!@#$\']', '', query)
+    result = util.sp.search(q=query, type='track', limit=limit)
     return list(map(lambda item: SpotifySong(item['name'], item['artists'], item['id']), result['tracks']['items']))

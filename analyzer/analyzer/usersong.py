@@ -1,6 +1,9 @@
+# pylint: disable=no-name-in-module
+
 import fnmatch
 import librosa
 import os
+import eyed3
 from multiprocessing import Pool
 from typing import List, Dict, Tuple
 
@@ -18,10 +21,13 @@ class UserSong(Song):
         self._path = os.path.abspath(path) # full file path to song on computer
         name = os.path.basename(self._path) # name with extension
         extension = name[name.rfind('.'):]
+        name = name[:name.rfind('.')]
         if extension not in UserSong.EXTENSIONS:
             raise ValueError('File must be one of: %s' % UserSong.EXTENSIONS)
-        
-        name = name[:name.rfind('.')]
+        self._extension = extension
+        # If the extension is an mp3, load the id3 tag
+        self._id3 = eyed3.load(path).tag if extension == '.mp3' else None
+
         super(UserSong, self).__init__(name)
 
         self._samples = None
@@ -65,6 +71,14 @@ class UserSong(Song):
             beats = self.get_analysis_feature(analysis.Feature.BEATS)
             self.set_analysis_feature(analysis.Feature.BEATS, analysis.annotate_downbeats(beats, time_signature))
 
+    def get_id3(self):
+        """
+        Returns the id3 tag of the song or None if it doesn't exist
+
+        @return: This songs id3 tag
+        """
+        return self._id3
+
     def get_path(self):
         """
         Returns the file path to the song on the computer
@@ -72,6 +86,14 @@ class UserSong(Song):
         @return: The file path to the song
         """
         return self._path
+
+    def get_extension(self):
+        """
+        Returns the extension of the song
+
+        @return: The extension of the song
+        """
+        return self._extension
 
     def get_samples(self):
         """
@@ -96,7 +118,7 @@ def load_songs_from_dir(directory: str) -> List[UserSong]:
     file_paths = []
     for root, _, files in os.walk(directory):
         for f in files:
-            file_path = os.path.join(root, f)
+            file_path = os.path.join(os.path.abspath(root), f)
             for ext in UserSong.EXTENSIONS:
                 if fnmatch.fnmatch(file_path, "*%s" % ext):
                     file_paths.append(file_path)

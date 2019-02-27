@@ -18,8 +18,8 @@ def main(args):
     if sp_song is not None:
         print("Found match!")
         matcher.merge_song_analysis(user_song, sp_song)
-        print(sp_song.get_id())
-        print(user_song.get_analysis_feature(analysis.Feature.KEY))
+        print("Spotify ID: %s" % sp_song.get_id())
+        print("Key: %s" % user_song.get_analysis_feature(analysis.Feature.KEY))
     else:
         print("No matching songs found")
 
