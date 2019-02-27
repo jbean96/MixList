@@ -26,7 +26,7 @@ class Mix(object):
         # a history of transitions applied to this Mix, 0 index is the least recent.
         self.tran_history = numpy.array([]) 
         # compute difference between the two song vectors
-        self.comp_vector = numpy.array([1,1,1,1])
+        self.comp_vector = self.__compare_songs(self.track_a, self.track_b)
     
     @classmethod
     def from_old_mix(self, old_mix: 'Mix', transition: transition.Transition, new_comp: numpy.array):
