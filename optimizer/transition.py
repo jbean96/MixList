@@ -6,6 +6,11 @@ class Transition(object):
     
     [TEMPO SCALAR, KEY DIFF SCALAR, DANCEABILITY SCALAR, ENERGY SCALAR, VALENCE SCALAR]
     """
+
+    # TODO: define basic transitions as class constants
+        # crossfade
+        # tempo change
+
     def __init__(self, values: numpy.array):
         """
         Creates a new transition object.
