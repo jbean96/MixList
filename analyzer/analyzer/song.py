@@ -1,4 +1,5 @@
 from enum import auto, Enum
+import eyed3.id3
 #from fuzzywuzzy import fuzz
 from typing import Any, List
 import pdb
@@ -24,6 +25,9 @@ class Song:
         @return: True if the Song has been analyzed, False otherwise
         """
         return self._analysis is not None and self._analysis.is_analyzed(feature)
+
+    def get_id3(self) -> eyed3.id3.tag.Tag:
+        return None
 
     def analyze(self):
         """
