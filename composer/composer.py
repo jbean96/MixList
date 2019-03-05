@@ -299,7 +299,7 @@ def get_end_transition_timestamp(beats_array, starting_index, num_beats):
     return beats_array[starting_index + num_beats].get_start_time()
 
 def tempomultiple(leading_tempo, following_tempo):
-    """44100
+    """
     When a tempo change is too drastic to match, change tempo to a multiple of the leading tempo
     :param leading_tempo: the starting tempo
     :param following_tempo: the tempo we are stretching to.
