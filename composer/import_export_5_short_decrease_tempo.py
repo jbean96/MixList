@@ -4,6 +4,7 @@ sys.path.append("../..")
 import os
 import composer
 from analyzer.analyzer import usersong, analysis
+from audio_effect_types import Transition_Types
 
 """
 Songs are in decreasing order of bpm
@@ -31,8 +32,8 @@ beat_e_1 = len(song_e.get_analysis_feature(analysis.Feature.BEATS)) - 13
 # length in beats
 length = 12
 # pass transition type
-t_1 = "crossfade"
-t_2 = "tempomatch"
+t_1 = Transition_Types.CROSSFADE
+t_2 = Transition_Types.TEMPO_MATCH
 mix = [
         {"song_a": song_a, "song_b": song_b, "start_a": 0, "start_b": 0, "sections":
             [{"offset": 0, "length": length, "type": [t_1, t_2]}]

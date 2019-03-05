@@ -4,6 +4,7 @@ sys.path.append("../..")
 import os
 import composer
 from analyzer.analyzer import usersong, analysis
+from audio_effect_types import Transition_Types
 
 """
 BPM of songs mixed
@@ -23,17 +24,17 @@ song_d = usersong.UserSong(filepaths[3], True)
 song_e = usersong.UserSong(filepaths[4], True)
 
 # get beat 16 beats from the end of Song a for transition 2
-beat_a_0 = len(song_a.get_analysis_feature(analysis.Feature.BEATS)) - 13
-beat_b_1 = len(song_b.get_analysis_feature(analysis.Feature.BEATS)) - 13
-beat_c_1 = len(song_c.get_analysis_feature(analysis.Feature.BEATS)) - 13
-beat_d_1 = len(song_d.get_analysis_feature(analysis.Feature.BEATS)) - 13
-beat_e_1 = len(song_e.get_analysis_feature(analysis.Feature.BEATS)) - 13
+beat_a_0 = len(song_a.get_analysis_feature(analysis.Feature.BEATS)) - 9
+beat_b_1 = len(song_b.get_analysis_feature(analysis.Feature.BEATS)) - 9
+beat_c_1 = len(song_c.get_analysis_feature(analysis.Feature.BEATS)) - 9
+beat_d_1 = len(song_d.get_analysis_feature(analysis.Feature.BEATS)) - 9
+beat_e_1 = len(song_e.get_analysis_feature(analysis.Feature.BEATS)) - 9
 
 # length in beats
-length = 12
+length = 8
 # pass transition type
-t_1 = "crossfade"
-t_2 = "tempomatch"
+t_1 = Transition_Types.CROSSFADE
+t_2 = Transition_Types.TEMPO_MATCH
 mix = [
         {"song_a": song_a, "song_b": song_b, "start_a": 0, "start_b": 0, "sections":
             [{"offset": 0, "length": length, "type": [t_1, t_2]}]

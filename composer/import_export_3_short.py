@@ -4,6 +4,7 @@ sys.path.append("../..")
 import os
 import composer
 from analyzer.analyzer import usersong, analysis
+from audio_effect_types import Transition_Types
 
 
 """
@@ -29,8 +30,8 @@ beat_c_1 = 0
 # length in beats
 length = 8
 # pass transition type
-t_1 = "crossfade"
-t_2 = "tempomatch"
+t_1 = Transition_Types.CROSSFADE
+t_2 = Transition_Types.TEMPO_MATCH
 mix = [
         {"song_a": song_a, "song_b": song_b, "start_a": beat_a_0,"start_b": beat_b_0, "sections":
             [{"offset": 0, "length": length, "type": [t_1, t_2]}]
