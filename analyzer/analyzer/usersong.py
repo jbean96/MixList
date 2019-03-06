@@ -17,7 +17,7 @@ class UserSong(Song):
     RESAMPLE_METHOD = 'kaiser_best' # ['kaiser_best', 'kaiser_fast', 'scipy']
     EXTENSIONS = ['.mp3', '.wav'] # can add more if needed
 
-    def __init__(self, path: str, analyze_on_init: bool=False):
+    def __init__(self, path: str, analyze_on_init: bool=False, load_static_analysis: bool=False):
         self._path = os.path.abspath(path) # full file path to song on computer
         name = os.path.basename(self._path) # name with extension
         extension = name[name.rfind('.'):]
@@ -31,10 +31,24 @@ class UserSong(Song):
         super(UserSong, self).__init__(name)
 
         self._samples = None
-        self._load()
-        if analyze_on_init:
-            self.analyze()
-            self.analyze_spotify()
+
+        analysis_loaded_from_file = False
+        analysis_path = os.path.join(os.path.dirname(self._path), self.get_name() + ".asys")
+        if load_static_analysis:
+            try:
+                if os.path.isfile(analysis_path):
+                    asys = analysis.from_file(analysis_path)
+                    self.set_analysis(asys)
+                    analysis_loaded_from_file = True
+            except:
+                pass
+
+        if not analysis_loaded_from_file:
+            self._load()
+            if analyze_on_init:
+                self.analyze()
+                self.analyze_spotify()
+                self.get_analysis().write_to_file(analysis_path)
     
     def _load(self):
         self._samples = librosa.load(self._path, sr=util.SAMPLE_RATE, res_type=UserSong.RESAMPLE_METHOD)[0]

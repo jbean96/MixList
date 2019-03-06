@@ -1,7 +1,7 @@
 # pylint: disable=no-name-in-module
 
 import argparse
-import pickle
+import dill
 import sys
 
 # Since the mixlist package is in the directory above this one
@@ -16,7 +16,7 @@ def main(args):
         print(s.get_analysis())
     else:
         with open(args.output_path, "wb") as out_file:
-            out_file.write(pickle.dumps(s.get_analysis(), protocol=4))
+            out_file.write(dill.dumps(s.get_analysis()))
             out_file.close()
 
 if __name__ == '__main__':
