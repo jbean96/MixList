@@ -3,6 +3,7 @@ import os
 sys.path.append("..")
 sys.path.append("../..")
 import composer
+from audio_effect_types import Transition_Types
 
 songs_path = os.path.join("..", "testmp3s")
 
@@ -32,14 +33,14 @@ transition0 = {
     'following_track': 1,
     'leading_tempo': 110,
     'following_tempo': 120,
-    'types': ['tempomatch', 'crossfade']
+    'types': [Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH]
     }
 transition1 = {
     'leading_track': 1,
     'following_track': 2,
     'leading_tempo': 120,
     'following_tempo': 125,
-    'types': ['tempomatch', 'crossfade']
+    'types': [Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH]
     }
 
 songs = [song0, song1, song2]
