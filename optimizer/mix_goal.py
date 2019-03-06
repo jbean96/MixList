@@ -6,7 +6,22 @@ class MixGoal(object):
     def __init__(self, ideal_song: song.Song, time_stamp: float):
         """
         Intializes a mix_goal instance
+
+        Keyword Arguments:
+            ideal_song: a song object created with features representing the ideal sound of the mix.
+            time_stamp: the time at which the ideal song should occur.
         """
-        # a mix goal is a tuple with a Song and a TimeStamp (float in seconds)
         self.ideal = ideal_song
         self.time = time_stamp
+    
+    def get_song(self):
+        """
+        Returns the song for this goal.
+        """
+        return self.ideal
+    
+    def get_time(self):
+        """
+        Returns the time for this goal in seconds.
+        """
+        return self.time

@@ -1,4 +1,5 @@
 import numpy
+from enum import Enum
 from analyzer.analyzer.song import Song
 from analyzer.analyzer.analysis import Feature
 from . import transition
@@ -8,6 +9,7 @@ class Mix(object):
     Represents a mix between a sequence of songs in the order
     Initially two, later >= 2
 
+    TODO: create a method for converting the given mix object to a script for composer.
     Later version features:
         - consider different sections of each song
         - consider multiple songs
@@ -66,7 +68,7 @@ class Mix(object):
         """
         Returns a numpy array that represents the comparison vector between track_a
         into track_b in the form:
-        [TEMPO_DIFF, KEY_DIFF, DANCEABILITY_DIFF, ENERGY_DIFF, VALENCE_DIFF]
+        [TEMPO_DIFF, KEY_DIFF, DANCE_DIFF, ENERGY_DIFF, VALENCE_DIFF]
         If any feature for either Song in a comparison is not analyzed that index will be NaN
         """
         # compare tempo
@@ -82,3 +84,13 @@ class Mix(object):
         val_diff = track_b.get_analysis_feature(Feature.VALENCE) - track_a.get_analysis_feature(Feature.VALENCE)
         # return comparison vector
         return numpy.array([tempo_diff, key_diff, dance_diff, energy_diff, val_diff])
+    
+class Comp(Enum):
+    """
+    Enumerations for feature comparisons in comp_vector. 
+    """
+    TEMPO = 0
+    KEY = 1
+    DANCE = 2
+    ENERGY = 3
+    VALENCE = 4
