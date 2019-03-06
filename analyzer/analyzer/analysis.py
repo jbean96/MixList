@@ -1,7 +1,10 @@
+# pylint: disable=import-error
+
 import librosa
 import math
 import numpy as np
-import pickle
+import dill
+import os
 from enum import Enum, auto
 from typing import Any, Dict, List, Tuple
 
@@ -132,6 +135,17 @@ class Analysis:
                 return None
 
         return self._features[feature]
+
+    def write_to_file(self, file_path: str) -> bool:
+        try:
+            with open(file_path, "wb") as out_file:
+                out_file.write(dill.dumps(self))
+                out_file.close()
+            return True
+        except:
+            print("Error when serializing analysis object to file: %s" % file_path)
+            return False
+        
     
 def get_closest_beat_to_time(beats: List[Beat], time: float, downbeat: bool=True) -> Beat:
     if downbeat:    
@@ -158,7 +172,7 @@ def get_closest_beat_to_time(beats: List[Beat], time: float, downbeat: bool=True
 
 def from_file(file_path: str) -> Analysis:
     with open(file_path, "rb") as in_file:
-        new_analysis = pickle.loads(in_file.read())
+        new_analysis = dill.loads(in_file.read())
         in_file.close()
         return new_analysis
 

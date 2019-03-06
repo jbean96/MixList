@@ -124,3 +124,14 @@ song2_time = song2_beat.get_start_time()
 song1_downbeat = analysis.get_closest_beat_to_time(beats, t1, True)
 song2_downbeat = analysis.get_closest_beat_to_time(beats, t2, True)
 ```
+
+### Dependencies
+
+`pip install librosa`
+`pip install spotipy`
+
+Need to do the specific version of magic:
+
+`pip install python-magic-bin==0.4.14`
+`pip install eyed3`
+`pip install pytest`
