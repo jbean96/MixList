@@ -1,7 +1,9 @@
 import time
 import pipeclient
+from typing import Dict, List, Union, Tuple
 from analyzer.analyzer import analysis
 from audio_effect_types import Transition_Types
+
 
 """
 This class opens a new pipe client with Audacity to perform Audacity commands via
@@ -10,12 +12,12 @@ Audacity Scripting language reference:
 https://manual.audacityteam.org/man/scripting_reference.html
 """
 class composer(object):
-    def __init__(self, song_list, transition_list):
+    def __init__(self, song_list: List[Dict[str, str]], transition_list: List[Dict[str, str]]):
         self.client = pipeclient.PipeClient()
         self.songs = song_list
         self.transitions = transition_list
 
-    def write(self, command):
+    def write(self, command: str):
         """
         writes the command to the open pipe
         """
@@ -44,7 +46,7 @@ class composer(object):
         """
         self.write("Export:")
 
-    def crossfade(self, transition):
+    def crossfade(self, transition: List[Dict[str, str]]):
         """
         Perform a simple crossfade between the tracks in transition
 
@@ -54,21 +56,21 @@ class composer(object):
         self.write("SelectTime: Start=" + str(transition['leading_start_transition']) + " End=" + str(transition['leading_end_transition']))
         self.write("CrossfadeTracks: type=ConstantPower1 direction=OutIn")
 
-    def fadein(self, start_time, end_time):
+    def fadein(self, start_time: float, end_time: float):
         """
         Performs a fadeIn from start_time to end_time on the selected track
         """
         self.write("SelectTime: Start=" + str(start_time) + " End=" + str(end_time))
         self.write("Fade In:")
 
-    def fadeout(self, start_time, end_time):
+    def fadeout(self, start_time: float, end_time: float):
         """
         perform fadeout from start_time to end_time on selected track
         """
         self.write("SelectTime: Start=" + str(start_time) + " End=" + str(end_time))
         self.write("Fade Out: ")
 
-    def slidingstretch(self, RatePercentChangeStart, RatePercentChangeEnd):
+    def slidingstretch(self, RatePercentChangeStart: float, RatePercentChangeEnd: float):
         """
         Perform a sliding stretch at the current selection
         :param RatePercentChangeStart: percentage of tempo change that will occur at the start of the selection
@@ -77,7 +79,7 @@ class composer(object):
         self.write("SlidingStretch: RatePercentChangeStart=" + str(RatePercentChangeStart) +
                    " RatePercentChangeEnd=" + str(RatePercentChangeEnd))
 
-    def changetempo(self, start_tempo, end_tempo, start_time, end_time):
+    def changetempo(self, start_tempo: float, end_tempo: float, start_time: float, end_time: float):
         """
         performs a simple tempo change of the selected track from start_time to end_time. No sliding stretch applied.
         Track must be selected prior to calling tempochange
@@ -87,16 +89,16 @@ class composer(object):
         :param end_time: the end of the selection
         """
         self.write("SelectTime: Start=" + str(start_time) + " End=" + str(end_time))
-        change = percent_change(start_tempo, end_tempo)
+        change: float = percent_change(start_tempo, end_tempo)
         self.write("ChangeTempo: Percentage=" + str(change))
 
-    def tempomatch(self, transition):
+    def tempomatch(self, transition: List[Dict[str, str]]):
         """
         Perform a tempo match across two tracks. Time strectches track
         Stretches both songs
         """
-        leading_tempo = transition["leading_tempo"]
-        following_tempo = transition["following_tempo"]
+        leading_tempo: float = transition["leading_tempo"]
+        following_tempo: float = transition["following_tempo"]
         print('leading_tempo = ' + str(leading_tempo))
         print('following_tempo = ' + str(following_tempo))
         leading_tempo, following_tempo = tempomultiple(leading_tempo, following_tempo)
@@ -112,13 +114,13 @@ class composer(object):
         self.write("SelectTime: Start=" + str(transition['leading_start_transition']) + " End=" + str(transition['leading_end_transition']))
         self.slidingstretch(0, percent_change(leading_tempo, following_tempo))
 
-    def tempomatch2(self, transition):
+    def tempomatch2(self, transition: List[Dict[str, str]]):
         """
         Stretches the leading song into the following songs tempo.
         Following track does not stretch
         """
-        leading_tempo = transition["leading_tempo"]
-        following_tempo = transition["following_tempo"]
+        leading_tempo: float = transition["leading_tempo"]
+        following_tempo: float = transition["following_tempo"]
         print('leading_tempo = ' + str(leading_tempo))
         print('following_tempo = ' + str(following_tempo))
         leading_tempo, following_tempo = tempomultiple(leading_tempo, following_tempo)
@@ -137,7 +139,7 @@ class composer(object):
         """
         # TODO: Do we want to support changes to the beginning of first song of mix? Currently supporting trimming only
         # First song in list has no intro transition and can be shift left if trimmed from the front
-        song = self.songs[0]
+        song: Dict[str, str] = self.songs[0]
         self.trimsong(0, song['start_intro'], song['end_outro'])
         # after trim, guaranteed to have song selected
         # first song in mix, align front and update values
@@ -181,7 +183,7 @@ class composer(object):
             self.transitions[transition_i]['leading_end_transition'] = self.songs[transition_i]['end_outro']
             song_i = song_i + 1
 
-    def trimsong(self, track, start_time, end_time):
+    def trimsong(self, track: float, start_time: float, end_time: float):
         """
         trims everything outside of the start and end time
         """
@@ -220,7 +222,7 @@ class composer(object):
 
 # TODO: Change filepath to song analysis_feature
 class composer_parser(object):
-    def __init__(self, transitions_array):
+    def __init__(self, transitions_array: List[Dict[str, Union[float, List[Transition_Types]]]]):
         self.transitions = transitions_array
         self.filepaths = []
 
@@ -287,10 +289,10 @@ class composer_parser(object):
         c.applytransitions()
         c.exportaudio()
 
-def percent_change(startValue, endValue):
-    return (float(endValue) / float(startValue) - 1) * 100
+def percent_change(startValue: float, endValue: float) -> float:
+    return (endValue / startValue - 1) * 100
 
-def get_end_transition_timestamp(beats_array, starting_index, num_beats):
+def get_end_transition_timestamp(beats_array: List[float], starting_index: int, num_beats: int) -> float:
     """
     :param beats_array: array of beats
     :param starting_index: the start of the transition
@@ -299,7 +301,7 @@ def get_end_transition_timestamp(beats_array, starting_index, num_beats):
     """
     return beats_array[starting_index + num_beats].get_start_time()
 
-def tempomultiple(leading_tempo, following_tempo):
+def tempomultiple(leading_tempo: float, following_tempo: float) -> Tuple[float, float]:
     """
     When a tempo change is too drastic to match, change tempo to a multiple of the leading tempo
     :param leading_tempo: the starting tempo
