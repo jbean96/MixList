@@ -4,7 +4,8 @@ import json
 import pickle
 import sys
 import fnmatch
-
+sys.path.append(os.path.normpath(os.path.join(os.path.realpath(__file__), "..", "..", "..")))
+print(sys.path)
 from analyzer.analyzer import usersong
 from analyzer.analyzer import analysis
 from optimizer import optimizer
@@ -31,7 +32,7 @@ print(song_paths)
 song_objects = list() 
 
 for path in song_paths:
-    song = usersong.UserSong(path, True)
+    song = usersong.UserSong(path, True, True)
     song_objects.append(song)
     print("{} : {} : {}".format(song.get_analysis_feature(analysis.Feature.NAME), song.get_analysis_feature(analysis.Feature.TEMPO), song.get_analysis_feature(analysis.Feature.KEY)))
 
@@ -45,5 +46,8 @@ style = style.Style()
 first_goal = mix_goal.MixGoal(song_objects[0], 0.0)
 goals = list([first_goal])
 # initialize optimizer
-dj = optimizer.Optimizer(song_objects, None, None, goals)
-print(dj.generate_mixtape())
+dj = optimizer.Optimizer(song_objects, goals, None, None)
+mix_script = dj.generate_mixtape()
+print("***MIX SCRIPT RESULT***")
+for s in mix_script:
+    print(s["song_a"])

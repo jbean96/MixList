@@ -102,7 +102,7 @@ class Optimizer(object):
 
         return possible_mixes
 
-    def generate_mixtape(self) -> List[song.Song]:
+    def generate_mixtape(self) -> List:
         """
         Generates a mixtape using this optimizer's state.
         Keyword args:        
@@ -115,7 +115,7 @@ class Optimizer(object):
         # find the song closest in tempo
         first_mix = first_mix_options.pop()
         for f in first_mix_options:
-            if abs(f.comp_vector[Comp.TEMPO]) < abs(first_mix.comp_vector[Comp.TEMPO]):
+            if abs(f.comp_vector[Comp.TEMPO.value]) < abs(first_mix.comp_vector[Comp.TEMPO.value]):
                 first_mix = f
         
         # add the first song to played
@@ -136,7 +136,7 @@ class Optimizer(object):
             assert len(possible) > 0
             next_mix = possible.pop()
             for m in possible:
-                if abs(m.comp_vector[Comp.TEMPO]) < abs(next_mix.comp_vector[Comp.TEMPO]):
+                if abs(m.comp_vector[Comp.TEMPO.value]) < abs(next_mix.comp_vector[Comp.TEMPO.value]):
                     next_mix = m
             self.songs_played.add(next_mix.track_b)
             curr_song = next_mix.track_b
@@ -177,9 +177,11 @@ class Optimizer(object):
         curr_song = mix_list.pop(0)
         # while there are still songs in the mix list 
         while(len(mix_list) > 0):
-            start_a = len(curr_song.get_analaysis_feature(analysis.Feature.BEATS)) - 33
+            start_a = len(curr_song.get_analysis_feature(analysis.Feature.BEATS)) - 33
             next_song = mix_list.pop(0)
-            curr_script = {"song_a": curr_song, "song_b": next_song, "start_a": start_a, "start_b": 0, "sections":
+            song_a_text = "{} - {}".format(curr_song.get_analysis_feature(analysis.Feature.NAME), curr_song.get_analysis_feature(analysis.Feature.TEMPO))
+            song_b_text = "{} - {}".format(next_song.get_analysis_feature(analysis.Feature.NAME), next_song.get_analysis_feature(analysis.Feature.TEMPO))
+            curr_script = {"song_a": song_a_text,  "song_b": song_b_text, "start_a": start_a, "start_b": 0, "sections":
                             [{"offset": 0, "length": length, "type": [t_1, t_2]}]
                           }
             curr_song = next_song
