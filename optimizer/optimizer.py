@@ -165,6 +165,12 @@ class Optimizer(object):
             mix_script.append(curr_script)
         return NotImplementedError()
 
+        """
+        Guarantee: effects list and transition list are in the same order.
+        effects_list = {UserSong: [effect_1, effect_2, ...]}
+        effect: {start_offset: integer, end_offset: integer, type: effect_type}
+        """
+
     @staticmethod
     def mix_songs(a: song.Song, b: song.Song) -> mix.Mix:
         """
