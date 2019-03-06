@@ -10,11 +10,10 @@ Audacity Scripting language reference:
 https://manual.audacityteam.org/man/scripting_reference.html
 """
 class composer(object):
-    def __init__(self, song_list, transition_list, filepaths):
+    def __init__(self, song_list, transition_list):
         self.client = pipeclient.PipeClient()
         self.songs = song_list
         self.transitions = transition_list
-        self.filepaths = filepaths
 
     def write(self, command):
         """
@@ -35,8 +34,8 @@ class composer(object):
         """
         Imports files
         """
-        for filepath in self.filepaths:
-            self.write("Import2:Filename=" + '"' + filepath + '"')
+        for song in self.songs:
+            self.write("Import2:Filename=" + '"' + song['filepath'] + '"')
 
     def exportaudio(self):
         """
@@ -221,9 +220,9 @@ class composer(object):
 
 # TODO: Change filepath to song analysis_feature
 class composer_parser(object):
-    def __init__(self, transitions_array, filepaths):
+    def __init__(self, transitions_array):
         self.transitions = transitions_array
-        self.filepaths = filepaths
+        self.filepaths = []
 
     # TODO: handle multiple sections per transition
     def compose(self):
@@ -237,7 +236,8 @@ class composer_parser(object):
         c_songs.insert(0, {
             'start_intro': 0,
             'end_intro': 0,
-            'tempo': round(self.transitions[0]['song_a'].get_analysis_feature(analysis.Feature.TEMPO))
+            'tempo': round(self.transitions[0]['song_a'].get_analysis_feature(analysis.Feature.TEMPO)),
+            'filepath': self.transitions[0]['song_a'].get_path()
         })
 
         i = 0
@@ -257,7 +257,8 @@ class composer_parser(object):
                 'start_intro': start_time.item(),
                 'end_intro': get_end_transition_timestamp(beats_array, self.transitions[i]['start_b'],
                                                           self.transitions[i]['sections'][0]['length']),
-                'tempo': round(self.transitions[i]['song_b'].get_analysis_feature(analysis.Feature.TEMPO))
+                'tempo': round(self.transitions[i]['song_b'].get_analysis_feature(analysis.Feature.TEMPO)),
+                'filepath': self.transitions[i]['song_b'].get_path()
 
             })
             # Set transition
@@ -276,7 +277,7 @@ class composer_parser(object):
         c_songs[last_index]['end_outro'] = beats_array[len(beats_array) - 1].get_start_time().item()
 
         # Start composer, Audacity must be running
-        c = composer(c_songs, c_transitions, self.filepaths)
+        c = composer(c_songs, c_transitions)
         # calling new just before import throws an error because the window can't load fast enough
         c.new()
         time.sleep(3)

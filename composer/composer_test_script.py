@@ -45,11 +45,9 @@ transition1 = {
 
 songs = [song0, song1, song2]
 transitions = [transition0, transition1]
-filepaths = [os.path.join(songs_path, "110bpm_8bars.mp3"),
-             os.path.join(songs_path, "120bpm_8bars.mp3"),
-             os.path.join(songs_path, "125bpm_8bars.mp3")]
 
-c = composer.composer(songs, transitions, filepaths)
+
+c = composer.composer(songs, transitions)
 c.importaudio()
 c.alignsongs()
 c.applytransitions()

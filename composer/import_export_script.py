@@ -39,5 +39,5 @@ mix = [
     }
 ]
 
-c = composer.composer_parser(mix, filepaths)
+c = composer.composer_parser(mix)
 c.compose()
