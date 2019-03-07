@@ -1,4 +1,4 @@
-import sys, os, numpy
+import sys, os, numpy, random
 lib_path = os.path.abspath(os.path.join(__file__, '..', 'MixList'))
 sys.path.append(lib_path)
 from analyzer.analyzer import song
@@ -108,6 +108,7 @@ class Optimizer(object):
         Keyword args:        
         """
         # choose the first song (closest to initial goal, based on song comparison)
+        """ 
         first_mix_options = set()
         for s in self.songs:
            first_mix_options.add(self.mix_songs(self.curr_goal.get_song(), s)) 
@@ -117,11 +118,11 @@ class Optimizer(object):
         for f in first_mix_options:
             if abs(f.comp_vector[Comp.TEMPO.value]) < abs(first_mix.comp_vector[Comp.TEMPO.value]):
                 first_mix = f
-        
+        """ 
+        # first song chosen is random
+        curr_song = random.sample(self.songs, 1)[0]
         # add the first song to played
-        self.songs_played.add(first_mix.track_b)
-        # first song chosen is the current song
-        curr_song = first_mix.track_b
+        self.songs_played.add(curr_song)
         # find all the songs that have not yet been played
         unplayed_songs = self.songs - self.songs_played
         # initialize an empty list
