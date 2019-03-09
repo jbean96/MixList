@@ -1,10 +1,9 @@
+import argparse
 import os
 import subprocess
 from enum import auto, Enum
 from tkinter import filedialog
 from tkinter import *
-
-DEBUG = True
 
 class Action(Enum):
     TEST_AUDACITY = auto()
@@ -13,17 +12,25 @@ class Action(Enum):
     DELETE_SONGS = auto()
 
 class MixListGui:
-    MIN_SONGS = 5
-    COLUMNS = ["Song Name"]
-
     WIDTH = 400
     HEIGHT = 500
     BORDER_WIDTH = 3
-    NUM_SECTIONS = 3
+    NUM_SECTIONS = 2
 
-    def __init__(self, master : Tk):
+    def __init__(self, master : Tk, cache_path : str, debug : bool):
+        """
+        Constructs the MixListGui object
+
+        @param master: The Tk object that the gui will belong to
+        @param cache_path: The path to the folder that we will look for/save static analyses
+            for mixed songs
+        @param debug: bool indicating whether or not we should log things to the command line
+        
+        """
         self.master = master
         self.master.title("MixList")
+
+        self.debug = debug
 
         self.COMMAND_MAP = {
             Action.TEST_AUDACITY : self.test_audacity,
@@ -57,14 +64,14 @@ class MixListGui:
         self.song_listbox = Listbox(self.song_frame, selectmode=EXTENDED)
         self.song_listbox.pack(expand=True, fill=BOTH)
 
-        self.draw_nav_frame(self.nav_frame, self.song_listbox)
+        self.draw_nav_frame(self.nav_frame)
 
         ### WIDGETS ###
 
         self.message_label = Label(self.nav_frame,  textvariable=self.message)
         self.message_label.pack(expand=True, fill=BOTH)
 
-    def draw_nav_frame(self, parent : Frame, song_list_box : Listbox):
+    def draw_nav_frame(self, parent : Frame):
         self.buttons = {
             Action.TEST_AUDACITY : Button(parent, text="Test Audacity", command=self.COMMAND_MAP[Action.TEST_AUDACITY]),
             Action.LOAD_SONGS : Button(parent, text="Load songs", command=self.COMMAND_MAP[Action.LOAD_SONGS]),
@@ -76,6 +83,7 @@ class MixListGui:
 
     def test_audacity(self):
         result = subprocess.run(["python", "pipe_test.py"])
+        print(result)
         if result.returncode == 1:
             self.message.set("Audacity test didn't work, make sure mod-script-pipe is enabled.")
         else:
@@ -108,7 +116,7 @@ class MixListGui:
     ### DEBUG METHODS ###
 
     def log_songs(self):
-        if not DEBUG:
+        if not self.debug:
             return
         
         if len(self.loaded_songs) > 1:
@@ -118,10 +126,19 @@ class MixListGui:
         else:
             print("No songs currently loaded")
 
-def _main():
+def _main(args: argparse.Namespace):
     root = Tk()
-    MixListGui(root)
+    cache_path = os.path.abspath(args.cache_path)
+    if not os.path.isdir(cache_path):
+        os.mkdir(cache_path)
+    MixListGui(root, cache_path, args.debug)
     root.mainloop()
 
 if __name__ == '__main__':
-    _main()
+    parser = argparse.ArgumentParser(description="Main program for the MixList project.")
+    parser.add_argument("--cache", "-c", type=str, dest="cache_path", default="mixlist_cache", help="The folder to store analyses in")
+    parser.add_argument("--debug", "-d", dest="debug", action="store_true")
+    parser.set_defaults(debug=False)
+
+    args = parser.parse_args()
+    _main(args)
