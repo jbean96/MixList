@@ -4,6 +4,8 @@ from enum import auto, Enum
 from tkinter import filedialog
 from tkinter import *
 
+DEBUG = True
+
 class Action(Enum):
     TEST_AUDACITY = auto()
     LOAD_SONGS = auto()
@@ -30,6 +32,13 @@ class MixListGui:
             Action.DELETE_SONGS : self.delete_songs
         }
 
+        ### VARIABLES ###
+
+        self.message = StringVar()
+        self.message.set("Let's make a mix!")
+        
+        self.loaded_songs = []
+
         ### FRAMES ###
 
         self.main_frame = Frame(self.master, width=MixListGui.WIDTH + MixListGui.BORDER_WIDTH * 2, \
@@ -38,6 +47,8 @@ class MixListGui:
             height=MixListGui.HEIGHT / 4, borderwidth=MixListGui.BORDER_WIDTH)
         self.song_frame = Frame(self.main_frame, width=MixListGui.WIDTH, \
             height=MixListGui.HEIGHT * 3.0 / 4, borderwidth=MixListGui.BORDER_WIDTH, relief="sunken")
+
+        self.master.bind("<Delete>", lambda _: self.delete_songs())
 
         for frame in [self.main_frame, self.nav_frame, self.song_frame]:
             frame.pack(expand=True, fill=BOTH)
@@ -48,17 +59,10 @@ class MixListGui:
 
         self.draw_nav_frame(self.nav_frame, self.song_listbox)
 
-        ### VARIABLES ###
-
-        self.message = StringVar()
-        self.message.set("Let's make a mix!")
-        
-        self.loaded_songs = []
-
         ### WIDGETS ###
 
         self.message_label = Label(self.nav_frame,  textvariable=self.message)
-        self.message_label.pack()
+        self.message_label.pack(expand=True, fill=BOTH)
 
     def draw_nav_frame(self, parent : Frame, song_list_box : Listbox):
         self.buttons = {
@@ -77,16 +81,42 @@ class MixListGui:
         else:
             self.message.set("Audacity is good to go!")
 
-    def mix(self):
-        self.message.set("MIX")
-
     def delete_songs(self):
-        self.message.set("DELETE")
+        indices = list(map(int, self.song_listbox.curselection()))
+        indices.sort(reverse=True)
+        for index in indices:
+            self.song_listbox.delete(index)
+            del self.loaded_songs[index]
+        self.message.set("Removed %d songs from list" % len(indices))
+
+        self.log_songs()
 
     def load_songs(self):
         file_paths = filedialog.askopenfilenames(initialdir=os.path.curdir, title="Select song files", filetypes=(("mp3 files", "*.mp3"), ("wav files", "*.wav")))
-        self.loaded_songs.extend(list(file_paths))
-        #self.display_songs()
+        new_songs = list(file_paths)
+        ### NEED TO TURN INTO SONG OBJECTS ###
+        self.loaded_songs.extend(new_songs)
+        for song in new_songs:
+            self.song_listbox.insert(END, song)
+
+        self.log_songs()
+
+    def mix(self):
+        ### TODO: Call methods to create mix here ###
+        self.message.set("MIX")
+
+    ### DEBUG METHODS ###
+
+    def log_songs(self):
+        if not DEBUG:
+            return
+        
+        if len(self.loaded_songs) > 1:
+            print("Currently loaded songs:")
+            for song in self.loaded_songs:
+                print(song)
+        else:
+            print("No songs currently loaded")
 
 def _main():
     root = Tk()
