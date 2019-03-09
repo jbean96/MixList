@@ -15,9 +15,11 @@ filepaths = [os.path.join(songs_path, '110bpm_8bars.mp3'),
              os.path.join(songs_path, '140bpm_8bars.mp3'),
              os.path.join(songs_path, '120bpm_8bars.mp3')]
 
-song_a = usersong.UserSong(filepaths[0], True)
-song_b = usersong.UserSong(filepaths[1], True)
-song_c = usersong.UserSong(filepaths[2], True)
+song_a = usersong.UserSong(filepaths[0])
+song_b = usersong.UserSong(filepaths[1])
+song_c = usersong.UserSong(filepaths[2])
+
+usersong.batch_analyze_user_songs([song_a, song_b, song_c])
 
 # get beat 16 beats from the end of Song a for transition 2
 beat_a_0 = len(song_a.get_analysis_feature(analysis.Feature.BEATS)) - 9

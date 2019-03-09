@@ -121,9 +121,11 @@ class MixListGui:
         self.log_message("Writing analysis files to: %s" % self.cache_path)
         for s in self.loaded_songs:
             s.write_analysis_to_folder(self.cache_path)
+            self.log_message(s.get_analysis())
         self.message.set("Songs analyzed!")
 
     def mix(self):
+        self.analyze_songs()
         ### TODO: Call methods to create mix here ###
         self.message.set("MIX")
 
