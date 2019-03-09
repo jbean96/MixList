@@ -5,11 +5,14 @@ from enum import auto, Enum
 from tkinter import filedialog
 from tkinter import *
 
+from analyzer.analyzer import usersong
+
 class Action(Enum):
     TEST_AUDACITY = auto()
     LOAD_SONGS = auto()
     MIX = auto()
     DELETE_SONGS = auto()
+    ANALYZE_SONGS = auto()
 
 class MixListGui:
     WIDTH = 400
@@ -32,11 +35,14 @@ class MixListGui:
 
         self.debug = debug
 
+        self.cache_path = cache_path
+
         self.COMMAND_MAP = {
             Action.TEST_AUDACITY : self.test_audacity,
             Action.LOAD_SONGS : self.load_songs,
             Action.MIX : self.mix,
-            Action.DELETE_SONGS : self.delete_songs
+            Action.DELETE_SONGS : self.delete_songs,
+            Action.ANALYZE_SONGS : self.analyze_songs
         }
 
         ### VARIABLES ###
@@ -51,9 +57,9 @@ class MixListGui:
         self.main_frame = Frame(self.master, width=MixListGui.WIDTH + MixListGui.BORDER_WIDTH * 2, \
              height=MixListGui.HEIGHT + MixListGui.BORDER_WIDTH * MixListGui.NUM_SECTIONS * 2, borderwidth=0)
         self.nav_frame = Frame(self.main_frame, width=MixListGui.WIDTH, \
-            height=MixListGui.HEIGHT / 4, borderwidth=MixListGui.BORDER_WIDTH)
+            height=MixListGui.HEIGHT * 3.0 / 8, borderwidth=MixListGui.BORDER_WIDTH)
         self.song_frame = Frame(self.main_frame, width=MixListGui.WIDTH, \
-            height=MixListGui.HEIGHT * 3.0 / 4, borderwidth=MixListGui.BORDER_WIDTH, relief="sunken")
+            height=MixListGui.HEIGHT * 5.0 / 8, borderwidth=MixListGui.BORDER_WIDTH, relief="sunken")
 
         self.master.bind("<Delete>", lambda _: self.delete_songs())
 
@@ -76,14 +82,14 @@ class MixListGui:
             Action.TEST_AUDACITY : Button(parent, text="Test Audacity", command=self.COMMAND_MAP[Action.TEST_AUDACITY]),
             Action.LOAD_SONGS : Button(parent, text="Load songs", command=self.COMMAND_MAP[Action.LOAD_SONGS]),
             Action.MIX : Button(parent, text="MIX!", command = self.COMMAND_MAP[Action.MIX]),
-            Action.DELETE_SONGS : Button(parent, text="Remove selected songs", command=self.COMMAND_MAP[Action.DELETE_SONGS])
+            Action.DELETE_SONGS : Button(parent, text="Remove selected songs", command=self.COMMAND_MAP[Action.DELETE_SONGS]),
+            Action.ANALYZE_SONGS : Button(parent, text="Analyze songs", command=self.COMMAND_MAP[Action.ANALYZE_SONGS])
         }
         for button in self.buttons.values():
             button.pack(expand=True, fill='x')
 
     def test_audacity(self):
         result = subprocess.run(["python", "pipe_test.py"])
-        print(result)
         if result.returncode == 1:
             self.message.set("Audacity test didn't work, make sure mod-script-pipe is enabled.")
         else:
@@ -101,13 +107,21 @@ class MixListGui:
 
     def load_songs(self):
         file_paths = filedialog.askopenfilenames(initialdir=os.path.curdir, title="Select song files", filetypes=(("mp3 files", "*.mp3"), ("wav files", "*.wav")))
-        new_songs = list(file_paths)
+        new_songs = list(map(usersong.UserSong, list(file_paths)))
         ### NEED TO TURN INTO SONG OBJECTS ###
         self.loaded_songs.extend(new_songs)
         for song in new_songs:
-            self.song_listbox.insert(END, song)
+            self.song_listbox.insert(END, song.get_name())
 
         self.log_songs()
+
+    def analyze_songs(self):
+        self.log_message("Analyzing songs")
+        usersong.batch_analyze_user_songs(self.loaded_songs, cache_path=self.cache_path)
+        self.log_message("Writing analysis files to: %s" % self.cache_path)
+        for s in self.loaded_songs:
+            s.write_analysis_to_folder(self.cache_path)
+        self.message.set("Songs analyzed!")
 
     def mix(self):
         ### TODO: Call methods to create mix here ###
@@ -122,9 +136,15 @@ class MixListGui:
         if len(self.loaded_songs) > 1:
             print("Currently loaded songs:")
             for song in self.loaded_songs:
-                print(song)
+                print(song.get_name())
         else:
             print("No songs currently loaded")
+
+    def log_message(self, message: str):
+        if not self.debug:
+            return
+
+        print(message)
 
 def _main(args: argparse.Namespace):
     root = Tk()
