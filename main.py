@@ -6,6 +6,9 @@ from tkinter import filedialog
 from tkinter import *
 
 from analyzer.analyzer import usersong
+from optimizer.optimizer import Optimizer
+from optimizer.mix_goal import MixGoal
+from composer import composer
 
 class Action(Enum):
     TEST_AUDACITY = auto()
@@ -121,15 +124,20 @@ class MixListGui:
         self.log_message("Writing analysis files to: %s" % self.cache_path)
         for s in self.loaded_songs:
             s.write_analysis_to_folder(self.cache_path)
-            self.log_message(s.get_analysis())
         self.message.set("Songs analyzed!")
 
     def mix(self):
+        if len(self.loaded_songs) == 0:
+            self.message.set("No loaded songs...")
+            return
+        first_goal = MixGoal(self.loaded_songs[0], 0.0)
+        goals = [first_goal]
         self.analyze_songs()
-        ### TODO: Call methods to create mix here ###
-        self.message.set("MIX")
-
-    ### DEBUG METHODS ###
+        dj = Optimizer(self.loaded_songs, goals)
+        mix = dj.generate_mixtape()
+        self.log_message(mix)
+        comp = composer.composer_parser(mix)
+        comp.compose()
 
     def log_songs(self):
         if not self.debug:

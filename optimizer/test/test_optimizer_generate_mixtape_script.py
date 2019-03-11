@@ -48,5 +48,5 @@ goals = list([first_goal])
 dj = optimizer.Optimizer(song_objects, goals, None, None)
 mix_script = dj.generate_mixtape()
 print("***MIX SCRIPT RESULT***")
-for s in mix_script:
-    print(s["song_a"])
+
+print(mix_script)
