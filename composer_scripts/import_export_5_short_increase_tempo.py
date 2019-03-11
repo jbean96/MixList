@@ -1,10 +1,10 @@
 import sys
-sys.path.append("..")
-sys.path.append("../..")
 import os
-import composer
+
+sys.path.append("..")
+from composer import composer
 from analyzer.analyzer import usersong, analysis
-from audio_effect_types import Transition_Types
+from composer.audio_effect_types import Transition_Types
 
 """
 BPM of songs mixed

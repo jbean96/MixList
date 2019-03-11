@@ -1,9 +1,8 @@
 import sys
 import os
 sys.path.append("..")
-sys.path.append("../..")
-import composer
-from audio_effect_types import Transition_Types
+from composer import composer
+from composer.audio_effect_types import Transition_Types
 
 songs_path = os.path.join("..", "testmp3s")
 
