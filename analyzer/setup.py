@@ -5,7 +5,7 @@ magic_dist = None
 if sys.platform.startswith('win32'):
     magic_dist = "python-magic-bin==0.4.14"
 else:
-    magic_dist = "python-magic==0.4.13"
+    magic_dist = "python-magic==0.4.15"
 
 setup(name="analyzer",
         version="0.1",
