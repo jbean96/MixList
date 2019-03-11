@@ -3,7 +3,7 @@ import os
 
 sys.path.append("..")
 from composer import composer
-from analyzer.analyzer import analysis, usersong
+from analyzer import analysis, usersong
 from composer.audio_effect_types import Transition_Types
 
 

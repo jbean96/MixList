@@ -2,8 +2,8 @@ import sys
 import os
 
 sys.path.append("..")
+from analyzer import usersong, analysis
 from composer import composer
-from analyzer.analyzer import usersong, analysis
 from composer.audio_effect_types import Transition_Types
 
 

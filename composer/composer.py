@@ -1,7 +1,7 @@
 import time
 from typing import Dict, List, Union, Tuple
 
-from analyzer.analyzer import analysis
+from analyzer import analysis
 from .audio_effect_types import Transition_Types
 from . import pipeclient
 

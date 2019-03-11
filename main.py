@@ -5,7 +5,7 @@ from enum import auto, Enum
 from tkinter import filedialog
 from tkinter import *
 
-from analyzer.analyzer import usersong
+from analyzer import usersong
 from optimizer.optimizer import Optimizer
 from optimizer.mix_goal import MixGoal
 from composer import composer

@@ -1,4 +1,4 @@
-from analyzer.analyzer import song
+from analyzer import song
 class MixGoal(object): 
     """
     Represents the goal index of a mix given an ideal "song"  and time.

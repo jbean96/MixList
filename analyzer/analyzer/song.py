@@ -1,6 +1,5 @@
-from enum import auto, Enum
 import eyed3.id3
-#from fuzzywuzzy import fuzz
+from enum import auto, Enum
 from typing import Any, List
 
 from . import analysis

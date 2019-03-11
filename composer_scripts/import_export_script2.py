@@ -3,7 +3,7 @@ import os
 
 sys.path.append("..")
 from composer import composer
-from analyzer.analyzer import usersong, analysis
+from analyzer import usersong, analysis
 from composer.audio_effect_types import Transition_Types
 
 songs_path = os.path.join("..", "testmp3s", "songs", "other")

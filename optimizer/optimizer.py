@@ -1,8 +1,8 @@
 import sys, os, numpy, random
 lib_path = os.path.abspath(os.path.join(__file__, '..', 'MixList'))
 sys.path.append(lib_path)
-from analyzer.analyzer import song
-from analyzer.analyzer import analysis
+from analyzer import song
+from analyzer import analysis
 from .transition import Transition
 from .threshold import Threshold
 from .mix import Mix

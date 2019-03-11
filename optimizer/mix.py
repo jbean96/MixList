@@ -1,7 +1,7 @@
 import numpy
 from enum import Enum
-from analyzer.analyzer.song import Song
-from analyzer.analyzer.analysis import Feature
+from analyzer.song import Song
+from analyzer.analysis import Feature
 from . import transition
 
 class Mix(object):
