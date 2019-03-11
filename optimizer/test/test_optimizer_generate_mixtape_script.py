@@ -27,13 +27,12 @@ def get_file_paths(directory: str):
                     break
     return file_paths
 
-song_paths = get_file_paths(os.path.join(os.getcwd(), "djskinnyg_songs"))
-print(song_paths)
-song_objects = list() 
+# song_paths = get_file_paths(os.path.join(os.getcwd(), "djskinnyg_songs"))
+song_paths = get_file_paths(os.path.join("..", "..", "testmp3s", "songs", "other"))
+song_objects = usersong.batch_create_user_songs(song_paths)
+usersong.batch_analyze_user_songs(song_objects)
 
-for path in song_paths:
-    song = usersong.UserSong(path, True, True)
-    song_objects.append(song)
+for song in song_objects:
     print("{} : {} : {}".format(song.get_analysis_feature(analysis.Feature.NAME), song.get_analysis_feature(analysis.Feature.TEMPO), song.get_analysis_feature(analysis.Feature.KEY)))
 
 # style threshold design
@@ -49,5 +48,5 @@ goals = list([first_goal])
 dj = optimizer.Optimizer(song_objects, goals, None, None)
 mix_script = dj.generate_mixtape()
 print("***MIX SCRIPT RESULT***")
-for s in mix_script:
-    print(s["song_a"])
+
+print(mix_script)

@@ -1,26 +1,29 @@
 import sys
-sys.path.append("..")
-sys.path.append("../..")
 import os
-import composer
+
+sys.path.append("..")
+from composer import composer
 from analyzer.analyzer import usersong, analysis
-from audio_effect_types import Transition_Types
+from composer.audio_effect_types import Transition_Types
 
 """
-Songs are in decreasing order of bpm
+BPM of songs mixed
+110 -> 120 -> 125 -> 130 -> 140
 """
 songs_path = os.path.join(os.path.abspath(".."), "testmp3s")
-filepaths = [os.path.join(songs_path, '140bpm_8bars.mp3'),
-             os.path.join(songs_path, '130bpm_8bars.mp3'),
-             os.path.join(songs_path, '125bpm_8bars.mp3'),
+filepaths = [os.path.join(songs_path, '110bpm_8bars.mp3'),
              os.path.join(songs_path, '120bpm_8bars.mp3'),
-             os.path.join(songs_path, '110bpm_8bars.mp3')]
+             os.path.join(songs_path, '125bpm_8bars.mp3'),
+             os.path.join(songs_path, '130bpm_8bars.mp3'),
+             os.path.join(songs_path, '140bpm_8bars.mp3')]
 
-song_a = usersong.UserSong(filepaths[0], True)
-song_b = usersong.UserSong(filepaths[1], True)
-song_c = usersong.UserSong(filepaths[2], True)
-song_d = usersong.UserSong(filepaths[3], True)
-song_e = usersong.UserSong(filepaths[4], True)
+song_a = usersong.UserSong(filepaths[0])
+song_b = usersong.UserSong(filepaths[1])
+song_c = usersong.UserSong(filepaths[2])
+song_d = usersong.UserSong(filepaths[3])
+song_e = usersong.UserSong(filepaths[4])
+
+usersong.batch_analyze_user_songs([song_a, song_b, song_c, song_d, song_e])
 
 # get beat 16 beats from the end of Song a for transition 2
 beat_a_0 = len(song_a.get_analysis_feature(analysis.Feature.BEATS)) - 13

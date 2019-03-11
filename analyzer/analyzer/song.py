@@ -46,6 +46,7 @@ class Song:
         should only be used for testing
         """
         self._analysis = analysis_obj
+        self._is_internally_analyzed = True
 
     def set_analysis_feature(self, feature: analysis.Feature, value: Any):
         self._analysis.set_feature(feature, value)
