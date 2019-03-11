@@ -10,45 +10,38 @@ The main module that should be used externally is the `usersong.py` module. This
 
 Once a song has been analyzed you'll need to used the [Analysis](#the-analysis-object) Object defined in `analysis.py` to get features of a Song.
 
-Loading a single song and analyzing it on load
+Loading a single song and then analyzing it
 ```python
 from analyzer.analyzer import usersong
 
 # Need to provide the entire path to the song so that the samples can be loaded
 file_path = "mysong.mp3"
-# By passing the parameter True for analyze_on_init, the song will be analyzed right
-# away and matched with a song from the Spotify API
-song = usersong.UserSong(file_path, True)
+# You create a new song just by passing the file path
+song = usersong.UserSong(file_path)
+# To do any audio processing you need to load the song
+song.load()
+# First we do the internal analysis on the track
+song.analyze()
+# Then get the spotify analysis which merges it into this songs analysis
+song.analyze_spotify()
 ```
 
-Loading a single song and analyzing after loading
+We can also load the analysis of a song from a file
 ```python
 from analyzer.analyzer import usersong
 
 file_path = "mysong.mp3"
-# By default analyze_on_init=False but we can pass it for clarity
-song = usersong.UserSong(file_path, False) # or usersong.UserSong(file_path)
-# This performs the internal analysis methods on the loaded song
-song.analyze()
-# Then we need to match the song from Spotify... you must call song.analyze()
-# first otherwise there will be an eventual Exception because the song's matching
-# features haven't been analyzed yet
-song.analyze_spotify()
-```
-
-**BEST**, load multiple songs in parallel
-```python
-from analyzer.analyzer import usersong
-
-file_paths = ["mysong1.mp3", "mysong2.mp3", "mysong3.mp3"]
-# This will load all songs in parallel and return them as a List of UserSong
-# objects, it will also do Spotify matching, in the case that there is no
-# matching Spotify song there simply will not be Spotify features for that
-# song in the analysis
-songs = usersong.load_songs(file_paths)
-# Or if you have a directory containing all those songs
-directory = "mysongdirectory"
-songs = usersong.load_songs_from_dir(directory)
+# analysis_cache should be the path to where you store static analyses
+analysis_cache = "analysis_cache_folder"
+# Create a user song object but don't load or analyze it
+song = usersong.UserSong(file_path)
+# analyze_user_song_from_cache will return a boolean indicating whether or not the
+# analysis was succesfully loaded
+loaded_from_cache = usersong.analyze_user_song_from_cache(song, analysis_cache)
+if not loaded_from_cache:
+    song.load()
+    song.analyze()
+    song.analyze_spotify()
 ```
 
 Getting analysis features
@@ -127,11 +120,11 @@ song2_downbeat = analysis.get_closest_beat_to_time(beats, t2, True)
 
 ### Dependencies
 
-`pip install librosa`
-`pip install spotipy`
+- `pip install librosa`
+- `pip install spotipy`
 
 Need to do the specific version of magic:
 
-`pip install python-magic-bin==0.4.14`
-`pip install eyed3`
-`pip install pytest`
+- `pip install python-magic-bin==0.4.14`
+- `pip install eyed3`
+- `pip install pytest`
