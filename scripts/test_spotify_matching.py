@@ -12,6 +12,8 @@ from analyzer.analyzer import analysis
 
 def main(args):
     user_song = UserSong(args.song)
+    user_song.load()
+    user_song.analyze()
     print("User song loaded...")
     print("Matching from Spotify.")
     sp_song = matcher.match_song(user_song)[0]

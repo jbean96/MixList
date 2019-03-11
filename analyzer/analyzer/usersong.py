@@ -42,6 +42,12 @@ class UserSong(Song):
         """
         if self._samples is None:
             raise ValueError('Song must be loaded before analysis')
+            
+        if self.is_analyzed(analysis.Feature.TEMPO) and \
+            self.is_analyzed(analysis.Feature.BEATS) and \
+                self.is_analyzed(analysis.Feature.DURATION):
+            print("already analyzed")
+            return 
 
         # Pre-matching analysis
         tempo, beats = analysis.analyze_beats(self._samples, util.SAMPLE_RATE)
@@ -49,6 +55,7 @@ class UserSong(Song):
         self.set_analysis_feature(analysis.Feature.BEATS, analysis.annotate_downbeats(beats, util.DEFAULT_TIME_SIGNATURE))
         duration = analysis.analyze_duration(self._samples, util.SAMPLE_RATE)
         self.set_analysis_feature(analysis.Feature.DURATION, duration)
+        self._is_internally_analyzed = True
         # song.set_analysis_feature(Analysis.Feature.KEY, Analyzer._analyze_key(song))
 
     def analyze_spotify(self) -> bool:

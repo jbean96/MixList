@@ -68,11 +68,7 @@ def _score_matching_songs(user_song: song.Song,
     @return: A list of tuples with the SpotifySong as the 0 index and the similarity score between
         that song and user_song in the 1 index
     """
-    # The user song must be analyzed to compare with the spotify songs
-    # TODO: Broken right now because is_analyzed just looks to see if the analysis object is
-    # there, if we change to assume that songs are always analyzed this won't be an issue
-    # if not user_song.is_analyzed():
-    #     user_song.analyze()
+    # The song needs to be analyzed to compare it with the Spotify songs
     user_song.analyze()
     
     return list(map(lambda sp_song: (sp_song, song.similarity(user_song, sp_song)), matches))
