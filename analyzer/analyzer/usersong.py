@@ -46,7 +46,6 @@ class UserSong(Song):
         if self.is_analyzed(analysis.Feature.TEMPO) and \
             self.is_analyzed(analysis.Feature.BEATS) and \
                 self.is_analyzed(analysis.Feature.DURATION):
-            print("already analyzed")
             return 
 
         # Pre-matching analysis

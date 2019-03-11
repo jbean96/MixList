@@ -1,4 +1,11 @@
+import sys
 from setuptools import setup
+
+magic_dist = None
+if sys.platform.startswith('win32'):
+    magic_dist = "python-magic-bin==0.4.14"
+else:
+    magic_dist = "python-magic==0.4.13"
 
 setup(name="analyzer",
         version="0.1",
@@ -11,7 +18,7 @@ setup(name="analyzer",
             "librosa",
             "dill",
             "spotipy",
-            "python-magic-bin==0.4.14",
+            magic_dist,
             "eyed3",
             "pytest",
             "tqdm"
