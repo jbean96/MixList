@@ -2,9 +2,6 @@ from .threshold import Threshold
 from .mix import Mix
 from enum import Enum
 
-#class Style_Lib(Enum):
-#    optimal = Style(Threshold([0, 0, ]))
-
 class Style(object):
     """
     Represents a DJs "style" defined by 3 different thresholds
@@ -30,3 +27,8 @@ class Style(object):
             mix: the mix to be evaluated against this Style.
         """
         return 0.0
+
+class Style_Lib(Enum):
+    conservative = Style(Threshold([0, 0, 0, 0, 0]), Threshold([5, 2, 0.2, 0.2, 0.2]), Threshold([0, 0, 0, 0, 0]))
+    regular = Style(Threshold([0, 0, 0, 0, 0]), Threshold([10, 4, 0.5, 0.5, 0.5]), Threshold([0, 1, 0.1, 0.1, 0.1]))
+    loose = Style(Threshold([0, 0, 0, 0, 0]), Threshold([15, 8, 0.8, 0.8, 0.8]), Threshold([3, 3, 0.2, 0.2, 0.2]))

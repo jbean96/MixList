@@ -1,4 +1,6 @@
 import numpy
+from .mix import Comp
+
 class Threshold(object):
     """
     Represents a "threshold" to evaluate a mix, common states represent
@@ -12,6 +14,7 @@ class Threshold(object):
         """
         Initializes a threshold instance
         """
+        assert numpy.size(values) == len(Comp)
         self.data = values
     
     def get_data(self) -> numpy.array:
