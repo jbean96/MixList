@@ -12,6 +12,7 @@ setup(name="analyzer",
             "librosa",
             "dill",
             "spotipy",
+            "numpy",
             "eyed3==0.8",
             "pytest",
             "tqdm"
