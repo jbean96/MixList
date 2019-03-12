@@ -7,6 +7,7 @@ from tkinter import *
 
 from analyzer import usersong
 from optimizer.optimizer import Optimizer
+from optimizer import style
 from optimizer.mix_goal import MixGoal
 from composer import composer
 
@@ -133,7 +134,7 @@ class MixListGui:
         first_goal = MixGoal(self.loaded_songs[0], 0.0)
         goals = [first_goal]
         self.analyze_songs()
-        dj = Optimizer(self.loaded_songs, goals)
+        dj = Optimizer(self.loaded_songs, goals, None, style.Style_Lib.tempo_based.value)
         mix = dj.generate_mixtape()
         self.log_message(mix)
         comp = composer.composer_parser(mix)
