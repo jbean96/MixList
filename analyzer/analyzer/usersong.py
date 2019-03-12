@@ -131,7 +131,7 @@ def analyze_user_song_from_cache(user_song: UserSong, cache_path: str) -> bool:
                 user_song.set_analysis(analysis.from_file(static_asys_path))
                 return True
             except:
-                pass
+                print("Error loading analysis from file: %s" % os.path.join(cache_path, static_asys_path))
     return False
 
 def analyze_user_song(user_song: UserSong):
