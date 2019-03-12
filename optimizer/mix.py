@@ -1,8 +1,8 @@
 import numpy
-from enum import Enum
 from analyzer.song import Song
 from analyzer.analysis import Feature
 from . import transition
+from . import threshold
 
 class Mix(object):
     """
@@ -26,9 +26,9 @@ class Mix(object):
         self.track_a = track_a
         self.track_b = track_b
         # a history of transitions applied to this Mix, 0 index is the least recent.
-        self.tran_history = numpy.array([]) 
+        self.history = numpy.array([]) 
         # compute difference between the two song vectors
-        self.comp_vector = self.__compare_songs(self.track_a, self.track_b)
+        self.threshold = self.__compare_songs(self.track_a, self.track_b)
     
     @classmethod
     def from_old_mix(self, old_mix: 'Mix', transition: transition.Transition, new_comp: numpy.array):
@@ -47,8 +47,8 @@ class Mix(object):
         for t in old_mix.tran_history:
             old_trans.append(t)
         old_trans.append(transition)
-        self.tran_history = numpy.array(old_trans)
-        self.comp_vector = new_comp
+        self.history = numpy.array(old_trans)
+        self.threshold = new_comp
 
     def apply_transition(self, tran: transition.Transition) -> 'Mix':
         """
@@ -60,9 +60,9 @@ class Mix(object):
         has the transition recorded in its history.
         """
         # apply the transition to the two songs "comparison"
-        new_comp_vector = numpy.multiply(self.comp_vector, tran.get_data())
+        new_threshold = numpy.multiply(self.threshold, tran.get_data())
         # return a new Mix instance with updated transition history and comparison
-        return self.from_old_mix(old_mix=self, transition=tran, new_comp=new_comp_vector)
+        return self.from_old_mix(old_mix=self, transition=tran, new_comp=new_threshold)
 
     def __compare_songs(self, track_a: Song, track_b: Song) -> numpy.array:
         """
@@ -84,13 +84,3 @@ class Mix(object):
         val_diff = track_b.get_analysis_feature(Feature.VALENCE) - track_a.get_analysis_feature(Feature.VALENCE)
         # return comparison vector
         return numpy.array([tempo_diff, key_diff, dance_diff, energy_diff, val_diff])
-    
-class Comp(Enum):
-    """
-    Enumerations for feature comparisons in comp_vector. 
-    """
-    TEMPO = 0
-    KEY = 1
-    DANCE = 2
-    ENERGY = 3
-    VALENCE = 4

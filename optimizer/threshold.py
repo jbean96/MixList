@@ -1,24 +1,15 @@
-import numpy
-from .mix import Comp
+from enum import Enum
+"""
+A numpy.array interpretted to
+quanitify the outcome of a mix
+OR  
+a DJ's style.
 
-class Threshold(object):
-    """
-    Represents a "threshold" to evaluate a mix, common states represent
-    a DJ's style threshold or goal progress threshold.
-    Can represent either a min, max, "ideal" state (no range)
-
-    For example, using features: [TEMPO, KEY, DANCEABILITY, ENERGY, VALENCE]
-    """
-
-    def __init__(self, values: numpy.array):
-        """
-        Initializes a threshold instance
-        """
-        assert numpy.size(values) == len(Comp)
-        self.data = values
-    
-    def get_data(self) -> numpy.array:
-        """
-        Returns the data for this Threshold object
-        """
-        return self.data
+Uses features [TEMPO, KEY, DANCEABILITY, ENERGY, VALENCE] enumerized Cue.
+"""
+class Cue(Enum):
+    TEMPO = 0
+    KEY = 1
+    DANCE = 2
+    ENERGY = 3
+    VALENCE = 4

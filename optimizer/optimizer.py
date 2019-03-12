@@ -240,13 +240,6 @@ class Optimizer(object):
         # check all elements, if > 0 then return false
         return True
 
-    @staticmethod 
-    def threshold_diff(mix: Mix, ideal: Threshold) -> float:
-        result = numpy.subtract(mix.diff, ideal.get_data)
-        # take absolute value of all array elements
-        # return the sum of results elements
-        return numpy.absolute(result)
-
     @staticmethod
     def generate_3_track(a: song.Song, b: song.Song, c: song.Song) -> List:
         """
