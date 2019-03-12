@@ -1,5 +1,9 @@
 from .threshold import Threshold
 from .mix import Mix
+from enum import Enum
+
+#class Style_Lib(Enum):
+#    optimal = Style(Threshold([0, 0, ]))
 
 class Style(object):
     """

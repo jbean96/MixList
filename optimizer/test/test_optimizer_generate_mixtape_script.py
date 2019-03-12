@@ -4,14 +4,15 @@ import json
 import pickle
 import sys
 import fnmatch
-sys.path.append(os.path.normpath(os.path.join(os.path.realpath(__file__), "..", "..", "..")))
-print(sys.path)
-from analyzer.analyzer import usersong
-from analyzer.analyzer import analysis
+project_path = os.path.normpath(os.path.join(os.path.realpath(__file__), "..", "..", ".."))
+sys.path.append(project_path)
+from analyzer import usersong
+from analyzer import analysis
 from optimizer import optimizer
 from optimizer import mix_goal
 from optimizer import style
 from optimizer import threshold
+from composer import composer
 
 def get_file_paths(directory: str):
     if not os.path.isdir(directory):
@@ -27,13 +28,15 @@ def get_file_paths(directory: str):
                     break
     return file_paths
 
-# song_paths = get_file_paths(os.path.join(os.getcwd(), "djskinnyg_songs"))
-song_paths = get_file_paths(os.path.join("..", "..", "testmp3s", "songs", "other"))
+song_folder_path = os.path.normpath(os.path.join(project_path, "djskinnyg_songs"))
+song_paths = get_file_paths(song_folder_path)
+cache_path = os.path.normpath(os.path.join(song_folder_path, "cache"))
 song_objects = usersong.batch_create_user_songs(song_paths)
-usersong.batch_analyze_user_songs(song_objects)
+usersong.batch_analyze_user_songs(song_objects, cache_path)
 
 for song in song_objects:
-    print("{} : {} : {}".format(song.get_analysis_feature(analysis.Feature.NAME), song.get_analysis_feature(analysis.Feature.TEMPO), song.get_analysis_feature(analysis.Feature.KEY)))
+    # song.write_analysis_to_folder(cache_path)
+    print("{} : {} : {} : {} : {} : {}".format(song.get_analysis_feature(analysis.Feature.NAME), song.get_analysis_feature(analysis.Feature.TEMPO), song.get_analysis_feature(analysis.Feature.KEY), song.get_analysis_feature(analysis.Feature.DANCEABILITY), song.get_analysis_feature(analysis.Feature.ENERGY), song.get_analysis_feature(analysis.Feature.VALENCE)))
 
 # style threshold design
 """
@@ -50,3 +53,7 @@ mix_script = dj.generate_mixtape()
 print("***MIX SCRIPT RESULT***")
 
 print(mix_script)
+
+#c = composer.composer_parser(mix_script)
+
+#c.compose()

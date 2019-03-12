@@ -182,7 +182,7 @@ class Optimizer(object):
             next_song = mix_list.pop(0)
             song_a_text = "{} - {}".format(curr_song.get_analysis_feature(analysis.Feature.NAME), curr_song.get_analysis_feature(analysis.Feature.TEMPO))
             song_b_text = "{} - {}".format(next_song.get_analysis_feature(analysis.Feature.NAME), next_song.get_analysis_feature(analysis.Feature.TEMPO))
-            curr_script = {"song_a": song_a_text,  "song_b": song_b_text, "start_a": start_a, "start_b": 0, "sections":
+            curr_script = {"song_a": curr_song,  "song_b": next_song, "start_a": start_a, "start_b": 0, "sections":
                             [{"offset": 0, "length": length, "type": [t_1, t_2]}]
                           }
             curr_song = next_song
