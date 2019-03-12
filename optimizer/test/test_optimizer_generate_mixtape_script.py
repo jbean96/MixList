@@ -14,6 +14,8 @@ from optimizer import style
 from optimizer import threshold
 from composer import composer
 
+# TODO: @analyzer, recognize and handle version names: "(Dirty)", "(Clean)", "(Intro - Clean)", "(Intro - Dirty)", "(Remix)" using regular expressions.
+
 def get_file_paths(directory: str):
     if not os.path.isdir(directory):
         raise Exception("%s is not a directory" % directory)
@@ -35,7 +37,7 @@ song_objects = usersong.batch_create_user_songs(song_paths)
 usersong.batch_analyze_user_songs(song_objects, cache_path)
 
 for song in song_objects:
-    # song.write_analysis_to_folder(cache_path)
+    song.write_analysis_to_folder(cache_path)
     print("{} : {} : {} : {} : {} : {}".format(song.get_analysis_feature(analysis.Feature.NAME), song.get_analysis_feature(analysis.Feature.TEMPO), song.get_analysis_feature(analysis.Feature.KEY), song.get_analysis_feature(analysis.Feature.DANCEABILITY), song.get_analysis_feature(analysis.Feature.ENERGY), song.get_analysis_feature(analysis.Feature.VALENCE)))
 
 # style threshold design
