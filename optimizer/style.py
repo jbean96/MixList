@@ -18,6 +18,8 @@ class Style(object):
     ideal: ideal characteristics of a mix
     """
 
+    MAX_SCORE = 10.0
+
     def __init__(self, min: numpy.array, max: numpy.array, ideal: numpy.array):
         """
         Constructs a Style instance
@@ -30,29 +32,32 @@ class Style(object):
         """
         Evaluates a mix based on this style and returns a float 0 <= score <= 10 indicating
         how well this mix aligns with the style, a lower score means better mix.
-        Ensures transitions fall within the min and max, then scores based on ideal.
+        Ensures threshold falls within the min and max, then scores based on ideal.
 
         Keyword Arguments:
             mix: the mix to be evaluated against this Style.
         """
-        min_result = numpy.subtract(mix.comp_vector, self.min)
+        # add in error checking for NaN
+        """
+        min_result = numpy.subtract(mix.threshold, self.min)
         # check if any changes are below the min
         if numpy.any(min_result[Cue.TEMPO.value:] < 0):
             return 10.0
-        max_result = numpy.subtract(mix.comp_vector, self.max)
+        max_result = numpy.subtract(mix.threshold, self.max)
         # check if any changes are above the max
         if numpy.any(max_result[Cue.TEMPO.value:] < 0):
             return 10.0
-        
+        """ 
         score = 0.0
-        ideal_compare = numpy.absolute(numpy.subtract(mix.comp_vector, self.ideal))
+        ideal_compare = numpy.absolute(numpy.subtract(mix.threshold, self.ideal))
         # normalize the score
-        score += (ideal_compare[Cue.TEMPO.value] / self.ideal.get_data()[Cue.TEMPO.value]) * Score_Weight.TEMPO
-        score += (ideal_compare[Cue.KEY.value]  / self.ideal.get_data()[Cue.KEY.value]) * Score_Weight.KEY
-        score += (ideal_compare[Cue.DANCE.value] / self.ideal.get_data()[Cue.DANCE.value]) * Score_Weight.DANCE
-        score += (ideal_compare[Cue.ENERGY.value] / self.ideal.get_data()[Cue.ENERGY.value]) * Score_Weight.ENERGY
-        score += (ideal_compare[Cue.VALENCE.value] / self.ideal.get_data()[Cue.VALENCE]) * Score_Weight.VALENCE
-
+        score += (ideal_compare[Cue.TEMPO.value] / self.ideal[Cue.TEMPO.value]) * Score_Weight.TEMPO.value
+        """
+        score += (ideal_compare[Cue.KEY.value]  / self.ideal[Cue.KEY.value]) * Score_Weight.KEY.value
+        score += (ideal_compare[Cue.DANCE.value] / self.ideal[Cue.DANCE.value]) * Score_Weight.DANCE.value
+        score += (ideal_compare[Cue.ENERGY.value] / self.ideal[Cue.ENERGY.value]) * Score_Weight.ENERGY.value
+        score += (ideal_compare[Cue.VALENCE.value] / self.ideal[Cue.VALENCE.value]) * Score_Weight.VALENCE.value
+        """
         return score 
 
 class Style_Lib(Enum):

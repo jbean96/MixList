@@ -1,17 +1,17 @@
 import sys, os, numpy, random
-lib_path = os.path.abspath(os.path.join(__file__, '..', 'MixList'))
+lib_path = os.path.normpath(os.path.join(os.path.realpath(__file__), '..', '..'))
 sys.path.append(lib_path)
 from analyzer import song
 from analyzer import analysis
 from .transition import Transition
-from .threshold import Threshold
+from .threshold import Cue
 from .mix import Mix
-from .mix import Comp
 from .mix_goal import MixGoal
 from .style import Style
 from typing import Dict
 from typing import List
 from typing import Set
+from composer import audio_effect_types as FX 
 
 class Optimizer(object):
     """ 
@@ -79,6 +79,7 @@ class Optimizer(object):
             # results_1 --> progress to goal threshold --> r_2 
             # r_2 --> evaluate transitions --> progress to goal threshold --> r_3
             # r_3 --> style threshold --> possibilities
+
         unplayed_songs = self.songs - self.songs_played
         if (len(unplayed_songs) == 0):
             # if all songs have been played then return None
@@ -87,10 +88,9 @@ class Optimizer(object):
         # initialize possible mixes
         possible_mixes = set()
 
-        # generate all possible mixes
+        # generate all possible mixes just comparing songs
         for song in unplayed_songs:
             possible_mixes.add(self.mix_songs(a, song))
-
 
         if len(self.transitions) > 0:
             # generate all possible mixes using one transition
@@ -99,6 +99,16 @@ class Optimizer(object):
                 for t in self.transitions:
                     possible_mixes_t.add(p.apply_transition(t))
             possible_mixes = possible_mixes_t
+        
+        # score the mixes against this style if exists
+        if self.style is not None:
+            best_mix = (None, Style.MAX_SCORE)
+            for p in possible_mixes:
+                score = self.style.score_mix(p)
+                if score < best_mix[1]:
+                    best_mix = (p, score)
+            # use the best mix
+            possible_mixes = set([best_mix])
 
         return possible_mixes
 
@@ -116,33 +126,10 @@ class Optimizer(object):
         # find the song closest in tempo
         first_mix = first_mix_options.pop()
         for f in first_mix_options:
-            if abs(f.comp_vector[Comp.TEMPO.value]) < abs(first_mix.comp_vector[Comp.TEMPO.value]):
+            if abs(f.threshold[Comp.TEMPO.value]) < abs(first_mix.threshold[Comp.TEMPO.value]):
                 first_mix = f
         """ 
-        # first song chosen is random
-        curr_song = random.sample(self.songs, 1)[0]
-        # add the first song to played
-        self.songs_played.add(curr_song)
-        # find all the songs that have not yet been played
-        unplayed_songs = self.songs - self.songs_played
-        # initialize an empty list
-        mix_list = list()
-        # add curr song to the list
-        mix_list.append(curr_song)
 
-        # order the songs based on tempo
-        while (len(unplayed_songs) > 0):
-            possible = self.get_next_possibilities(curr_song)
-            # choosed next song based on closest tempo
-            assert len(possible) > 0
-            next_mix = possible.pop()
-            for m in possible:
-                if abs(m.comp_vector[Comp.TEMPO.value]) < abs(next_mix.comp_vector[Comp.TEMPO.value]):
-                    next_mix = m
-            self.songs_played.add(next_mix.track_b)
-            curr_song = next_mix.track_b
-            mix_list.append(curr_song)
-            unplayed_songs.remove(next_mix.track_b)
         # while more songs && more goals
             # consider state
             # consider possibilities
@@ -161,6 +148,32 @@ class Optimizer(object):
                 # time to next goal
             # check goal progress
                 # determine if moving to next goal
+
+        # first song chosen is random
+        curr_song = random.sample(self.songs, 1)[0]
+        # add the first song to played
+        self.songs_played.add(curr_song)
+        # find all the songs that have not yet been played
+        unplayed_songs = self.songs - self.songs_played
+        # initialize an empty list
+        mix_list = list()
+        # add curr song to the list
+        mix_list.append(curr_song)
+
+        # order the songs based on tempo
+        while (len(unplayed_songs) > 0):
+            possible = self.get_next_possibilities(curr_song)
+            # choosed next song based on closest tempo
+            assert len(possible) > 0
+            next_mix = possible.pop()
+            for m in possible:
+                if abs(m.threshold[Cue.TEMPO.value]) < abs(next_mix.threshold[Cue.TEMPO.value]):
+                    next_mix = m
+            self.songs_played.add(next_mix.track_b)
+            curr_song = next_mix.track_b
+            mix_list.append(curr_song)
+            unplayed_songs.remove(next_mix.track_b)
+
         return self.generate_basic_mix_script(mix_list)
     
     @staticmethod
@@ -170,8 +183,8 @@ class Optimizer(object):
         """
         mix_script = list()
         # pass transition type
-        t_1 = "crossfade"
-        t_2 = "tempomatch"
+        t_1 = FX.Transition_Types.CROSSFADE
+        t_2 = FX.Transition_Types.TEMPO_MATCH
         # transition is length is always 16 
         length = 32
         # curr song
@@ -182,7 +195,7 @@ class Optimizer(object):
             next_song = mix_list.pop(0)
             song_a_text = "{} - {}".format(curr_song.get_analysis_feature(analysis.Feature.NAME), curr_song.get_analysis_feature(analysis.Feature.TEMPO))
             song_b_text = "{} - {}".format(next_song.get_analysis_feature(analysis.Feature.NAME), next_song.get_analysis_feature(analysis.Feature.TEMPO))
-            curr_script = {"song_a": curr_song,  "song_b": next_song, "start_a": start_a, "start_b": 0, "sections":
+            curr_script = {"song_a": song_a_text,  "song_b": song_b_text, "start_a": start_a, "start_b": 0, "sections":
                             [{"offset": 0, "length": length, "type": [t_1, t_2]}]
                           }
             curr_song = next_song
@@ -222,18 +235,18 @@ class Optimizer(object):
         return Mix(a, b).apply_transition(t)
 
     @staticmethod
-    def in_threshold_range(mix: Mix, min: Threshold, max: Threshold) -> bool:
+    def in_threshold_range(mix: Mix, min: numpy.array, max: numpy.array) -> bool:
         """
         Determines if mix is valid within threshold.
 
         Keyword args:
         """
-        min_result = numpy.subtract(mix.diff, min.get_data)
+        min_result = numpy.subtract(mix.threshold, min)
         # check all elements, if < 0 then return false
         assert isinstance(min_result, numpy.array)
         if numpy.any(min_result[:, 0] < 0):
             return False
-        max_result = numpy.subtract(mix.diff, max.get_data) 
+        max_result = numpy.subtract(mix.threshold, max) 
         assert isinstance(max_result, numpy.array)
         if numpy.any(max_result[:, 0] > 0):
             return False
