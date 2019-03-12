@@ -52,6 +52,12 @@ class Song:
 
     def get_analysis_feature(self, feature: analysis.Feature) -> Any:
         return self._analysis.get_feature(feature)
+    
+    def __str__(self):
+        return "{} : {}".format(self.get_analysis_feature(analysis.Feature.NAME), self.get_analysis_feature(analysis.Feature.TEMPO))
+    
+    def __repr__(self):
+        return "{} : {}".format(self.get_analysis_feature(analysis.Feature.NAME), self.get_analysis_feature(analysis.Feature.TEMPO))
 
 def similarity(song1: Song, song2: Song, features: List[analysis.Feature]=None) -> float:
     """
