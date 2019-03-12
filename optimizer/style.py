@@ -2,6 +2,7 @@ from .threshold import Cue
 from .mix import Mix
 from enum import Enum
 import numpy
+import scipy
 
 class Score_Weight(Enum):
     TEMPO = 10.0
@@ -12,55 +13,50 @@ class Score_Weight(Enum):
 
 class Style(object):
     """
-    Represents a DJs "style" defined by 3 different thresholds
-    min: minimum threshold for a mix
-    max: maximum threshold for a mix
-    ideal: ideal characteristics of a mix
+    Represents a DJs "style" using normal distributions and weights for each threshold feature:
+    mean: [TEMPO, KEY, DANCE, ENERGY, VALENCE]
+    dev: [TEMPO, KEY, DANCE, ENERGY, VALENCE]
+    weight: [TEMPO, KEY, DANCE, ENERGY, VALENCE]
     """
 
     MAX_SCORE = 10.0
+    MIN_SCORE = 0.0
 
-    def __init__(self, min: numpy.array, max: numpy.array, ideal: numpy.array):
+    def __init__(self, mean: numpy.array, deviation: numpy.array, weight: numpy.array):
         """
         Constructs a Style instance
         """ 
-        self.min = min
-        self.max = max
-        self.ideal = ideal
+        self.mean = mean
+        self.dev = deviation
+        assert numpy.sum(weight) <= self.MAX_SCORE
+        self.weight = weight
+        self.distr = scipy.stats.norm
     
     def score_mix(self, mix: Mix) -> float:
         """
-        Evaluates a mix based on this style and returns a float 0 <= score <= 10 indicating
-        how well this mix aligns with the style, a lower score means better mix.
-        Ensures threshold falls within the min and max, then scores based on ideal.
+        Evaluates a mix based on the probability of occurence for this style.
+        Higher score means high probability of occurence, 0.0 < score < 10.0
 
         Keyword Arguments:
             mix: the mix to be evaluated against this Style.
         """
-        # add in error checking for NaN
-        """
-        min_result = numpy.subtract(mix.threshold, self.min)
-        # check if any changes are below the min
-        if numpy.any(min_result[Cue.TEMPO.value:] < 0):
-            return 10.0
-        max_result = numpy.subtract(mix.threshold, self.max)
-        # check if any changes are above the max
-        if numpy.any(max_result[Cue.TEMPO.value:] < 0):
-            return 10.0
-        """ 
         score = 0.0
-        ideal_compare = numpy.absolute(numpy.subtract(mix.threshold, self.ideal))
-        # normalize the score
-        score += (ideal_compare[Cue.TEMPO.value] / self.ideal[Cue.TEMPO.value]) * Score_Weight.TEMPO.value
-        """
-        score += (ideal_compare[Cue.KEY.value]  / self.ideal[Cue.KEY.value]) * Score_Weight.KEY.value
-        score += (ideal_compare[Cue.DANCE.value] / self.ideal[Cue.DANCE.value]) * Score_Weight.DANCE.value
-        score += (ideal_compare[Cue.ENERGY.value] / self.ideal[Cue.ENERGY.value]) * Score_Weight.ENERGY.value
-        score += (ideal_compare[Cue.VALENCE.value] / self.ideal[Cue.VALENCE.value]) * Score_Weight.VALENCE.value
-        """
+        # for each feature: distr(mix_value, feature_mean, feature_deviation) * feature_weight
+        for feature in Cue:
+            if not numpy.isnan(mix.threshold[feature.value]):
+                score += self.distr.pdf(mix.threshold[feature.value], self.mean[feature.value], self.dev[feature.value]) * self.weight[feature.value]
+            else:
+                score += 0.0
         return score 
+    
+    def __str__(self):
+        return "{} : {}".format(numpy.vstack((self.mean, self.dev)), self.weight)
+    
+    def __repr__(self):
+        return "{} : {}".format(numpy.vstack((self.mean, self.dev)), self.weight)
 
 class Style_Lib(Enum):
-    conservative = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([5, 2, 0.2, 0.2, 0.2]), numpy.array([0, 0, 0, 0, 0]))
-    regular = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([10, 4, 0.5, 0.5, 0.5]), numpy.array([0, 1, 0.1, 0.1, 0.1]))
-    loose = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([15, 8, 0.8, 0.8, 0.8]), numpy.array([3, 3, 0.2, 0.2, 0.2]))
+    conservative = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([5, 1, 0.1, 0.1, 0.1]), numpy.array([9, 0, 0.3, 0.3, 0.3])) 
+    regular = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([10, 3, 0.2, 0.2, 0.2]), numpy.array([7, 0, 1, 1, 1]))    
+    loose = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([15, 6, 0.3, 0.3, 0.3]), numpy.array([4, 0, 2, 2, 2]))
+    tempo_based = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([5, 0, 0.2, 0.2, 0.2]), numpy.array([9, 0, 0.1, 0.1, 0.1])) 

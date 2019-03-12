@@ -103,13 +103,13 @@ class Optimizer(object):
         # score the mixes against this style if exists
         if self.style is not None:
             mix_scores = [(m, self.style.score_mix(m)) for m in possible_mixes]
-            # set first mix to be best
-            best_mix = mix_scores[0]
+            best_mix = (None, Style.MIN_SCORE)
             for m in mix_scores:
-                if m[1] < best_mix[1]:
+                if m[1] > best_mix[1]:
                     best_mix = m
             # use the best mix
             possible_mixes = set([best_mix[0]])
+            print("[{}] -> [{} : {}] -> [{}]".format(best_mix[0].track_a, best_mix[0].threshold, best_mix[1], best_mix[0].track_b))
 
         return possible_mixes
 
