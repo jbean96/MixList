@@ -3,7 +3,9 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from datetime import datetime
 
 SAMPLE_RATE = 44100
+HOP_LENGTH = 512
 DEFAULT_TIME_SIGNATURE = 4
+LOAD_SONGS_ON_INIT = True
 
 CLIENT_ID = '3f1aa13bb7db466fa6294a27157b3776'
 CLIENT_SECRET = '608ad2aef74c494795d6e0d7927de725'

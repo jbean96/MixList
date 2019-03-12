@@ -2,6 +2,7 @@
 
 import fnmatch
 import librosa
+import numpy as np
 import os
 import eyed3
 from multiprocessing import Pool
@@ -16,9 +17,9 @@ from .keys import Camelot
 
 class UserSong(Song):
     RESAMPLE_METHOD = 'kaiser_best' # ['kaiser_best', 'kaiser_fast', 'scipy']
-    EXTENSIONS = ['.mp3', '.wav'] # can add more if needed
+    EXTENSIONS = ['.mp3', '.wav', '.ogg'] # can add more if needed
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, load_on_init: bool=util.LOAD_SONGS_ON_INIT):
         self._path = os.path.abspath(path) # full file path to song on computer
         name = os.path.basename(self._path) # name with extension
         extension = name[name.rfind('.'):]
@@ -31,10 +32,17 @@ class UserSong(Song):
 
         super(UserSong, self).__init__(name)
 
+        # Used to cache the rms arrays computed for the beats
+        self._rms_frames = {}
+
         self._samples = None
+        if load_on_init:
+            self.load()
     
     def load(self):
-        self._samples = librosa.load(self._path, sr=util.SAMPLE_RATE, res_type=UserSong.RESAMPLE_METHOD)[0]
+        if self._samples is None:
+            # print("Loading song %s" % self.get_name())
+            self._samples = librosa.load(self._path, sr=util.SAMPLE_RATE, res_type=UserSong.RESAMPLE_METHOD)[0]
 
     def analyze(self):
         """
@@ -80,6 +88,29 @@ class UserSong(Song):
             self.set_analysis_feature(analysis.Feature.BEATS, analysis.annotate_downbeats(beats, time_signature))
         return True # Spotify match found!
 
+    def get_amplitude_at_beat(self, beat: analysis.Beat, window_size: int) -> float:
+        """
+        Gets the average amplitude over a window at a beat
+
+        @param beat: The beat to get the average amplitude at
+        @param window_size: The half size of the window (must be a power of 2)
+        """
+        if window_size <= 0 or window_size > 4096:
+            raise ValueError("Parameter window_size must be > 0")  
+        if (window_size & (window_size - 1)) != 0:
+            raise ValueError("Parameter window size must be a power of 2")
+        if window_size in self._rms_frames:
+            rms_array = self._rms_frames[window_size]
+        else:
+            self.load() # checks if there's no samples first
+            rms_array = librosa.feature.spectral.rms(y=self._samples, frame_length=window_size*2, \
+                center=True, hop_length=util.HOP_LENGTH)[0]
+            self._rms_frames[window_size] = rms_array
+        frame_index = beat.get_frame()
+        if frame_index < 0 or frame_index >= len(rms_array):
+            raise ValueError("Frame index is out of bounds")
+        return rms_array[frame_index]
+
     def get_id3(self):
         """
         Returns the id3 tag of the song or None if it doesn't exist
@@ -115,6 +146,10 @@ class UserSong(Song):
     def get_asys_file_name(self):
         return self.get_name() + ".asys"
 
+    ### ONLY USED FOR TESTING ###
+    def _set_samples(self, samples: np.ndarray):
+        self._samples = samples
+
     def write_analysis_to_folder(self, folder_path: str):
         try:
             file_path = os.path.join(folder_path, self.get_asys_file_name())
@@ -139,14 +174,14 @@ def analyze_user_song(user_song: UserSong):
     user_song.analyze()
     user_song.analyze_spotify()
 
-def batch_create_user_songs(file_paths: List[str]) -> List[UserSong]:
+def batch_create_user_songs(file_paths: List[str], load_on_init: bool=util.LOAD_SONGS_ON_INIT) -> List[UserSong]:
     """
     Creates a List of unanalyzed user songs
 
     @param file_paths: A List of file paths to create UserSong objects from
     @param return: A List of UserSong objects (unanalyzed)
     """
-    songs = list(map(UserSong, file_paths))
+    songs = list(map(lambda x: UserSong(x, load_on_init), file_paths))
     return songs
 
 def batch_analyze_user_songs(user_songs: List[UserSong], cache_path: str=None):
@@ -156,7 +191,7 @@ def batch_analyze_user_songs(user_songs: List[UserSong], cache_path: str=None):
         if not analyze_user_song_from_cache(s, cache_path):
             analyze_user_song(s)
 
-def load_songs_from_dir(directory: str) -> List[UserSong]:
+def load_songs_from_dir(directory: str, load_on_init: bool=util.LOAD_SONGS_ON_INIT) -> List[UserSong]:
     if not os.path.isdir(directory):
         raise Exception("%s is not a directory" % directory)
     
@@ -168,4 +203,4 @@ def load_songs_from_dir(directory: str) -> List[UserSong]:
                 if fnmatch.fnmatch(file_path, "*%s" % ext):
                     file_paths.append(file_path)
                     break
-    return batch_create_user_songs(file_paths)
+    return batch_create_user_songs(file_paths, load_on_init)

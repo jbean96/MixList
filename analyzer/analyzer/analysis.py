@@ -39,6 +39,14 @@ class Beat:
         else:
             raise NotImplementedError("Only samples and time are supported")
 
+    def get_frame(self) -> int:
+        if Beat.INDEX_VALUE == 'samples':
+            return librosa.samples_to_frames(self.index, hop_length=util.HOP_LENGTH)
+        elif Beat.INDEX_VALUE == 'time':
+            return librosa.time_to_frames(self.index, sr=util.SAMPLE_RATE, hop_length=util.HOP_LENGTH)
+        else:
+            raise NotImplementedError("Only samples and time are supported")
+
     def __str__(self) -> str:
         return "(%f, %s)" % (self.index, "True" if self.is_downbeat else "False")
 
