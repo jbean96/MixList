@@ -40,21 +40,16 @@ for song in song_objects:
     song.write_analysis_to_folder(cache_path)
     print("{} : {} : {} : {} : {} : {}".format(song.get_analysis_feature(analysis.Feature.NAME), song.get_analysis_feature(analysis.Feature.TEMPO), song.get_analysis_feature(analysis.Feature.KEY), song.get_analysis_feature(analysis.Feature.DANCEABILITY), song.get_analysis_feature(analysis.Feature.ENERGY), song.get_analysis_feature(analysis.Feature.VALENCE)))
 
-# style threshold design
-"""
-min_t = threshold.threshold
-max_t = threshold.Threshold
-style = style.Style() 
-"""
 # create a list with one goal (start)
 first_goal = mix_goal.MixGoal(song_objects[0], 0.0)
 goals = list([first_goal])
 # initialize optimizer
-dj = optimizer.Optimizer(song_objects, goals, None, None)
+dj = optimizer.Optimizer(song_objects, goals, None, style.Style_Lib.loose.value)
 mix_script = dj.generate_mixtape()
 print("***MIX SCRIPT RESULT***")
 
-print(mix_script)
+for mix in mix_script:
+    print(mix)
 
 #c = composer.composer_parser(mix_script)
 

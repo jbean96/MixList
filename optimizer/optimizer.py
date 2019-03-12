@@ -102,13 +102,14 @@ class Optimizer(object):
         
         # score the mixes against this style if exists
         if self.style is not None:
-            best_mix = (None, Style.MAX_SCORE)
-            for p in possible_mixes:
-                score = self.style.score_mix(p)
-                if score < best_mix[1]:
-                    best_mix = (p, score)
+            mix_scores = [(m, self.style.score_mix(m)) for m in possible_mixes]
+            # set first mix to be best
+            best_mix = mix_scores[0]
+            for m in mix_scores:
+                if m[1] < best_mix[1]:
+                    best_mix = m
             # use the best mix
-            possible_mixes = set([best_mix])
+            possible_mixes = set([best_mix[0]])
 
         return possible_mixes
 
@@ -195,7 +196,7 @@ class Optimizer(object):
             next_song = mix_list.pop(0)
             song_a_text = "{} - {}".format(curr_song.get_analysis_feature(analysis.Feature.NAME), curr_song.get_analysis_feature(analysis.Feature.TEMPO))
             song_b_text = "{} - {}".format(next_song.get_analysis_feature(analysis.Feature.NAME), next_song.get_analysis_feature(analysis.Feature.TEMPO))
-            curr_script = {"song_a": song_a_text,  "song_b": song_b_text, "start_a": start_a, "start_b": 0, "sections":
+            curr_script = {"song_a": curr_song,  "song_b": next_song, "start_a": start_a, "start_b": 0, "sections":
                             [{"offset": 0, "length": length, "type": [t_1, t_2]}]
                           }
             curr_song = next_song
