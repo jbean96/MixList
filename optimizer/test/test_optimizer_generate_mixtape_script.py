@@ -44,7 +44,7 @@ for song in song_objects:
 first_goal = mix_goal.MixGoal(song_objects[0], 0.0)
 goals = list([first_goal])
 # initialize optimizer
-dj = optimizer.Optimizer(song_objects, goals, None, style.Style_Lib.loose.value)
+dj = optimizer.Optimizer(song_objects, goals, None, style.Style_Lib.tempo_based.value)
 mix_script = dj.generate_mixtape()
 print("***MIX SCRIPT RESULT***")
 
