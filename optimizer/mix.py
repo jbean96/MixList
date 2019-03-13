@@ -1,8 +1,8 @@
-import numpy
+import numpy, sys, os
 from analyzer.song import Song
 from analyzer.analysis import Feature
-from . import transition
-from . import threshold
+sys.path.append(os.path.normpath(os.path.join(os.path.realpath(__file__), "..", "..")))
+from .transition import Transition
 
 class Mix(object):
     """
@@ -31,7 +31,7 @@ class Mix(object):
         self.threshold = self.__compare_songs(self.track_a, self.track_b)
     
     @classmethod
-    def from_old_mix(self, old_mix: 'Mix', transition: transition.Transition, new_comp: numpy.array):
+    def from_old_mix(self, old_mix: 'Mix', transition: Transition, new_comp: numpy.array):
         """
         Keyword Args:
             old_mix: a Mix instance to copy.
@@ -50,7 +50,7 @@ class Mix(object):
         self.history = numpy.array(old_trans)
         self.threshold = new_comp
 
-    def apply_transition(self, tran: transition.Transition) -> 'Mix':
+    def apply_transition(self, tran: Transition) -> 'Mix':
         """
         Keyword Args:
             tran: a Transition instance to be applied to this Mix object.

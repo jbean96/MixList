@@ -91,25 +91,33 @@ class Optimizer(object):
         # generate all possible mixes just comparing songs
         for song in unplayed_songs:
             possible_mixes.add(self.mix_songs(a, song))
-
+        
+        # score the mixes against this style if exists
+        if self.style is not None:
+            mix_scores = [(m, self.style.score_mix(m)) for m in possible_mixes]
+            # get up to the top 3 mixes
+            mix_scores.sort(key=lambda tup: tup[1], reverse=True)
+            best_mix = mix_scores.pop(0)
+            possible_mixes = set([best_mix])
+            """
+            i = 0
+            while i < 1 and len(mix_scores) > 0:
+                mix_to_add = mix_scores.pop(0)
+                possible_mixes.add(mix_to_add[0])
+                print("[{}] -> [{} : {}] -> [{}]".format(mix_to_add[0].track_a, mix_to_add[0].threshold, mix_to_add[1], mix_to_add[0].track_b))
+                i += 1
+            """
+        """
         if len(self.transitions) > 0:
-            # generate all possible mixes using one transition
+            # generate the ideal transition for each remaining mix
             possible_mixes_t = set()
             for p in possible_mixes:
                 for t in self.transitions:
                     possible_mixes_t.add(p.apply_transition(t))
             possible_mixes = possible_mixes_t
-        
-        # score the mixes against this style if exists
-        if self.style is not None:
-            mix_scores = [(m, self.style.score_mix(m)) for m in possible_mixes]
-            best_mix = (None, Style.MIN_SCORE)
-            for m in mix_scores:
-                if m[1] > best_mix[1]:
-                    best_mix = m
-            # use the best mix
-            possible_mixes = set([best_mix[0]])
-            print("[{}] -> [{} : {}] -> [{}]".format(best_mix[0].track_a, best_mix[0].threshold, best_mix[1], best_mix[0].track_b))
+        """ 
+        #start_beat_options = Transition.find_ideal_start_beat(best_mix)
+        # get the best mix with it's transition by comparing back to style
 
         return possible_mixes
 
@@ -167,18 +175,15 @@ class Optimizer(object):
             # choosed next song based on closest tempo
             assert len(possible) > 0
             next_mix = possible.pop()
-            for m in possible:
-                if abs(m.threshold[Cue.TEMPO.value]) < abs(next_mix.threshold[Cue.TEMPO.value]):
-                    next_mix = m
             self.songs_played.add(next_mix.track_b)
             curr_song = next_mix.track_b
-            mix_list.append(curr_song)
+            mix_list.append(next_mix)
             unplayed_songs.remove(next_mix.track_b)
 
         return self.generate_basic_mix_script(mix_list)
     
     @staticmethod
-    def generate_basic_mix_script(mix_list: List[song.Song]) -> List:
+    def generate_basic_mix_script(mix_list: List[Mix]) -> List:
         """
         Takes a list of Song objects and convert it to a mix script using a simple transition.
         """
@@ -187,19 +192,20 @@ class Optimizer(object):
         t_1 = FX.Transition_Types.CROSSFADE
         t_2 = FX.Transition_Types.TEMPO_MATCH
         # transition is length is always 16 
-        length = 32
         # curr song
-        curr_song = mix_list.pop(0)
+        curr_mix = mix_list.pop(0)
         # while there are still songs in the mix list 
         while(len(mix_list) > 0):
-            start_a = len(curr_song.get_analysis_feature(analysis.Feature.BEATS)) - 33
-            next_song = mix_list.pop(0)
+            curr_song = curr_mix.track_a
+            next_song = curr_mix.track_b
+            start_beats = Transition.find_ideal_start_beat(curr_mix)
+            chosen_start = random.choice(start_beats)
             song_a_text = "{} - {}".format(curr_song.get_analysis_feature(analysis.Feature.NAME), curr_song.get_analysis_feature(analysis.Feature.TEMPO))
             song_b_text = "{} - {}".format(next_song.get_analysis_feature(analysis.Feature.NAME), next_song.get_analysis_feature(analysis.Feature.TEMPO))
-            curr_script = {"song_a": curr_song,  "song_b": next_song, "start_a": start_a, "start_b": 0, "sections":
-                            [{"offset": 0, "length": length, "type": [t_1, t_2]}]
+            curr_script = {"song_a": curr_song,  "song_b": next_song, "start_a": chosen_start[1], "start_b": 0, "sections":
+                            [{"offset": 0, "length": chosen_start[0], "type": [t_1, t_2]}]
                           }
-            curr_song = next_song
+            curr_mix = mix_list.pop(0)
             mix_script.append(curr_script)
         return mix_script
 
