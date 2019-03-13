@@ -2,9 +2,8 @@ import time
 from typing import Dict, List, Union, Tuple
 
 from analyzer import analysis
-from .audio_effect_types import Transition_Types
+from .audio_effect_types import Transition_Types, Effect_Types
 from . import pipeclient
-
 
 """
 This class opens a new pipe client with Audacity to perform Audacity commands via
@@ -13,10 +12,12 @@ Audacity Scripting language reference:
 https://manual.audacityteam.org/man/scripting_reference.html
 """
 class composer(object):
-    def __init__(self, song_list: List[Dict[str, str]], transition_list: List[Dict[str, str]]):
+    def __init__(self, song_list: List[Dict[str, str]], transition_list: List[Dict[str, str]], effects_list):
         self.client = pipeclient.PipeClient()
         self.songs = song_list
         self.transitions = transition_list
+        self.effects = effects_list
+        print(self.effects)
 
     def write(self, command: str):
         """
@@ -155,6 +156,11 @@ class composer(object):
         self.write("SelectTime: Start=0 End=" + str(song['start_outro']))
         self.write("SelSave: ")
 
+        # Update effects times
+        for effect_dict in (self.effects[0]):
+            effect_dict['start_time'] = effect_dict['start_time'] - shiftLeft
+            effect_dict['end_time'] = effect_dict['end_time'] - shiftLeft
+
         # Set transition times
         self.transitions[0]['following_start_transition'] = song['start_intro']
         self.transitions[0]['following_end_transition'] = song['end_intro']
@@ -175,6 +181,11 @@ class composer(object):
             # move cursor to next position
             self.write("SelectTime: Start=0 End=" + str(song["start_outro"]))
             self.write("SelSave: ")
+
+            # Update effects times
+            for effect_dict in self.effects[song_i]:
+                effect_dict['start_time'] = effect_dict['start_time'] - shiftLeft
+                effect_dict['end_time'] = effect_dict['end_time'] - shiftLeft
 
             transition_i = song_i - 1
             # Set transition times
@@ -207,24 +218,38 @@ class composer(object):
         for transition in reversed(self.transitions):
             if Transition_Types.TEMPO_MATCH in transition['types']:
                 self.tempomatch(transition)
-            if Transition_Types.TEMPO_MATCH2 in transition['types']:
-                self.tempomatch2(transition)
             # merge following track into leading track to preserve track alignment
             self.write("Select: Track=" + str(transition['leading_track']))
             self.write("SelectTracks: Track=" + str(transition['following_track']) + " Mode=Add")
             self.write("MixAndRender:")
 
     def applyeffects(self):
-        """
-        Apply effects to each track
-        """
-        return NotImplementedError
+        for i in range(len(self.effects)):
+            song_effects = self.effects[i]
+            for effect in song_effects:
+                self.write("Select: Track=" + str(i))
+                if effect['type'] == Effect_Types.NONE:
+                    pass
+                if effect['type'] == Effect_Types.FADEOUT:
+                    self.fadeout(effect['start_time'], effect['end_time'])
+                if effect['type'] == Effect_Types.FADEIN:
+                    self.fadein(effect['start_time'], effect['end_time'])
 
-
-# TODO: Change filepath to song analysis_feature
+"""
+Offset = X
+Length = N
+Delay time = 60 / bpm
+Time = N * (Delay Time)
+Amplitude_Start = 1 * (orginal_amplitude @ offset)
+Amplitude_End = .05 * (original_amplitude @ offset)
+(decay_factor) ^ N = 0.05
+N = log_(decay_factor)(0.05)
+Find decay_factor.
+"""
 class composer_parser(object):
-    def __init__(self, transitions_array: List[Dict[str, Union[float, List[Transition_Types]]]]):
+    def __init__(self, transitions_array, effects_array):
         self.transitions = transitions_array
+        self.effects = effects_array
         self.filepaths = []
 
     # TODO: handle multiple sections per transition
@@ -233,6 +258,7 @@ class composer_parser(object):
         if len(self.transitions) < 0:
             return -1
         c_songs = []
+        c_effects = []
         c_transitions = []
 
         # Intro for first song set to time=0
@@ -243,8 +269,19 @@ class composer_parser(object):
             'filepath': self.transitions[0]['song_a'].get_path()
         })
 
+        beats_array = self.transitions[0]['song_a'].get_analysis_feature(analysis.Feature.BEATS)
+        song_effects = self.effects[0]
+
+        curr_effect_list = []
+        for effect in song_effects:
+            curr_effect_list.append({
+                'start_time': beats_array[effect['start_offset']].get_start_time().item(),
+                'end_time': get_end_transition_timestamp(beats_array, effect['start_offset'], effect['length']),
+                'type': effect['type']
+            })
+        c_effects.insert(0, curr_effect_list)
+
         i = 0
-        beats_array = []
         while i < len(self.transitions):
             # Set Outro and tempo to leading song
             beats_array = self.transitions[i]['song_a'].get_analysis_feature(analysis.Feature.BEATS)
@@ -272,6 +309,18 @@ class composer_parser(object):
                 'following_tempo': c_songs[i+1]['tempo'],
                 'types': self.transitions[i]['sections'][0]['type']
             })
+
+            # set ith songs non-transition effects
+            song_effects = self.effects[i + 1]
+            curr_effect_list = []
+            for effect in song_effects:
+                curr_effect_list.append({
+                    'start_time': beats_array[effect['start_offset']].get_start_time().item(),
+                    'end_time': get_end_transition_timestamp(beats_array, effect['start_offset'], effect['length']),
+                    'type': effect['type']
+                })
+            c_effects.insert(i, curr_effect_list)
+
             i = i + 1
 
         last_index = len(c_songs) -1
@@ -280,13 +329,14 @@ class composer_parser(object):
         c_songs[last_index]['end_outro'] = beats_array[len(beats_array) - 1].get_start_time().item()
 
         # Start composer, Audacity must be running
-        c = composer(c_songs, c_transitions)
+        c = composer(c_songs, c_transitions, c_effects)
         # calling new just before import throws an error because the window can't load fast enough
         c.new()
         time.sleep(3)
         # The order of songs imported must match order of c_songs
         c.importaudio()
         c.alignsongs()
+        c.applyeffects()
         c.applytransitions()
         c.exportaudio()
 
