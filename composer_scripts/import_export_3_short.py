@@ -4,7 +4,7 @@ import os
 sys.path.append("..")
 from analyzer import usersong, analysis
 from composer import composer
-from composer.audio_effect_types import Transition_Types
+from composer.audio_effect_types import Transition_Types, Effect_Types
 
 
 """
@@ -43,5 +43,15 @@ mix = [
         }
     ]
 
-c = composer.composer_parser(mix)
+
+"""
+effects_list = [[effect_1, effect_2, ...]
+    effect: {start_offset: integer, length: integer, type: effect_type}
+"""
+
+effect_list = [[{'start_offset': 0, 'length': 4, 'type': Effect_Types.FADEOUT}],
+               [{'start_offset': 0, 'length': 4, 'type': Effect_Types.FADEOUT}],
+               [{'start_offset': 0, 'length': 4, 'type': Effect_Types.FADEOUT}]]
+
+c = composer.composer_parser(mix, effect_list)
 c.compose()
