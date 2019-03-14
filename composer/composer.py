@@ -235,17 +235,7 @@ class composer(object):
                 if effect['type'] == Effect_Types.FADEIN:
                     self.fadein(effect['start_time'], effect['end_time'])
 
-"""
-Offset = X
-Length = N
-Delay time = 60 / bpm
-Time = N * (Delay Time)
-Amplitude_Start = 1 * (orginal_amplitude @ offset)
-Amplitude_End = .05 * (original_amplitude @ offset)
-(decay_factor) ^ N = 0.05
-N = log_(decay_factor)(0.05)
-Find decay_factor.
-"""
+
 class composer_parser(object):
     def __init__(self, transitions_array, effects_array):
         self.transitions = transitions_array
@@ -280,6 +270,7 @@ class composer_parser(object):
                 'type': effect['type']
             })
         c_effects.insert(0, curr_effect_list)
+        
 
         i = 0
         while i < len(self.transitions):
