@@ -9,23 +9,20 @@ from typing import List
 
 class Transition(object):
     """
-    Represents a "transition" between two songs as a vector, can be applied to a mix
-    to modify different features of the mix based on the interpretted effect of the transition.
-    
-    [TEMPO SCALAR, KEY DIFF SCALAR, DANCEABILITY SCALAR, ENERGY SCALAR, VALENCE SCALAR]
+    Represents a "transition" between two songs.
+    Creates an ideal transition between two songs given a Mix and a Style.
     """
 
     # TODO: define basic transitions as class constants
         # crossfade
         # tempo change
 
-    def __init__(self, values: numpy.array):
+    def __init__(self, mix: Mix, style: Style):
         """
         Creates a new transition object.
         """
-        self.data = numpy.array
-        self.start_a = None
-        self.start_b = 0
+        self.mix = mix
+        self.style = style
         self.sections = list()
     
     def get_data(self) -> numpy.array:
@@ -70,6 +67,11 @@ class Transition(object):
         # merge the sections if necessary
 
         return best_beats
+    
+    # TODO: step 1 find ideal length, based on song amplitude at a given point (add ability to detect vocals later)
+    # TODO: find ideal location to transition (amplitude, progress, bonus points for correct phrasing)
+    # TODO: apply echo if the transition needs it on the way out
+    # TODO: add a "to script" method which converts the transition to a valid script for composer
 
 class Lengths(Enum):
     QUICK = 4
