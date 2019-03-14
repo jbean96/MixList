@@ -8,3 +8,4 @@ __pycache__
 keyfinder/data
 keyfinder/data.tar.gz
 djskinnyg_songs*
+*egg-info
