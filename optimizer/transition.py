@@ -186,29 +186,37 @@ class Transition(object):
         assert isinstance(self.mix.track_a, UserSong)
         assert isinstance(self.mix.track_b, UserSong)
 
-        min_for_length = (None, 2.0) # beat and amplitude difference
-        track_b_start_amp = self.mix.track_b.get_amplitude_at_beat(beat=track_b_beats[length.value // 2], window_size=length.value // 2)
         num_beats_in_a = len(track_a_beats)
-        for i in range(0, num_beats_in_a):
-            # make sure we're not trying to find the amplitude of a beat before/after the song
-            if i >= length.value/2 and (i + length.value // 2) <= num_beats_in_a:
-                track_a_curr_amp = self.mix.track_a.get_amplitude_at_beat(beat=track_a_beats[i], window_size=length.value // 2)
-                diff = abs(track_a_curr_amp - track_b_start_amp)
-                if diff < min_for_length[1]:
-                    min_for_length = (i, diff)
+        num_beats_in_b = len(track_b_beats)
+        assert num_beats_in_a >= length.value
+        assert num_beats_in_b >= length.value
+        half_of_length = (length.value // 2)
+        min_for_length = (None, 2.0) # beat and amplitude difference
+        track_b_start_amp = self.mix.track_b.get_amplitude_at_beat(beat=track_b_beats[half_of_length], window_size=half_of_length)
+        # make sure we're not trying to find the amplitude of a beat before/after the song, step by half_of_length
+        for i in range(0, num_beats_in_a - length.value, half_of_length):
+            beat_to_check = i + half_of_length 
+            track_a_curr_amp = self.mix.track_a.get_amplitude_at_beat(beat=track_a_beats[beat_to_check], window_size=half_of_length)
+            diff = abs(track_a_curr_amp - track_b_start_amp)
+            if diff < min_for_length[1]:
+                min_for_length = (i, diff)
 
         self.start_a = min_for_length[0]
 
-        # based on length:
+        # build the section based on length:
+        types = None
         if length == Lengths.BAR: 
             # just a crossfade
+            types = [Transition_Types.CROSSFADE]
             self.sections = [Section(offset=0, length=length, types=[Transition_Types.CROSSFADE])]
         elif length == Lengths.PHRASE or Lengths.HALF:
             # crossfade with tempo match continious
-            self.sections = [Section(offset=0, length=length, types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH])]
+            types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH]
         else:
             # crossfade with tempo match half way
-            self.sections = [Section(offset=0, length=length, types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH2])]
+            types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH2]
+        
+        self.sections = [Section(offset=0, length=length, types=types)]
     
     # TODO: step 1 find ideal length, based on song amplitude at a given point (add ability to detect vocals later)
     # TODO: find ideal location to transition (amplitude, progress, bonus points for correct phrasing)
