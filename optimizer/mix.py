@@ -27,8 +27,6 @@ class Mix(object):
         """
         self.track_a = track_a
         self.track_b = track_b
-        # a history of transitions applied to this Mix, 0 index is the least recent.
-        self.history = numpy.array([]) 
         # compute difference between the two song vectors
         self.threshold = self.__compare_songs(self.track_a, self.track_b)
     
