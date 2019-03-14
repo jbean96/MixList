@@ -43,6 +43,14 @@ class Style(object):
                 score += 0.0
         return score 
     
+    def mix_feature_score(self, mix: Mix, feature: Cue) -> float:
+        """
+        Return the score for this style for a Mix considering only a single feature.
+        """
+        if numpy.isnan(mix.threshold[feature.value]):
+            return numpy.nan
+        return self.distr.pdf(mix.threshold[feature.value], self.mean[feature.value], self.dev[feature.value]) * self.weight[feature.value]
+    
     def __str__(self):
         return "{} : {}".format(numpy.vstack((self.mean, self.dev)), self.weight)
     
