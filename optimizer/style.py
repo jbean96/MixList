@@ -58,7 +58,7 @@ class Style(object):
         return "{} : {}".format(numpy.vstack((self.mean, self.dev)), self.weight)
 
 class Style_Lib(Enum):
-    conservative = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([5, 1, 0.1, 0.1, 0.1]), numpy.array([9, 0, 0.3, 0.3, 0.3])) 
-    regular = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([10, 3, 0.2, 0.2, 0.2]), numpy.array([7, 0, 1, 1, 1]))    
-    loose = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([15, 6, 0.3, 0.3, 0.3]), numpy.array([4, 0, 2, 2, 2]))
-    tempo_based = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([5, 0, 0.2, 0.2, 0.2]), numpy.array([9, 0, 0.1, 0.1, 0.1])) 
+    perfect_mixes = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([3, 1, 0.1, 0.1, 0.1]), numpy.array([9, 0, 0.3, 0.3, 0.3])) 
+    balanced = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([10, 3, 0.2, 0.2, 0.2]), numpy.array([7, 0, 1, 1, 1]))    
+    vibe_based = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([15, 6, 0.3, 0.3, 0.3]), numpy.array([4, 0, 2, 2, 2]))
+    tempo_based = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([5, 1, 0.2, 0.2, 0.2]), numpy.array([9, 0, 0.1, 0.1, 0.1])) 
