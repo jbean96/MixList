@@ -17,7 +17,7 @@ from .keys import Camelot
 
 class UserSong(Song):
     RESAMPLE_METHOD = 'kaiser_best' # ['kaiser_best', 'kaiser_fast', 'scipy']
-    EXTENSIONS = ['.mp3', '.wav', '.ogg'] # can add more if needed
+    EXTENSIONS = ['.mp3', '.wav', '.ogg', '.flac', '.m4a'] # can add more if needed
 
     def __init__(self, path: str, load_on_init: bool=util.LOAD_SONGS_ON_INIT):
         self._path = os.path.abspath(path) # full file path to song on computer

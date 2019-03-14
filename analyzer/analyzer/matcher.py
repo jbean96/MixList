@@ -32,7 +32,8 @@ def _construct_query_from_name(name: str) -> str:
     return query
 
 def _remove_song_version(name: str) -> str:
-    return re.sub(r'(\(.*(dirty|clean|intro).*\))', '', name, flags=re.I)
+    removed = re.sub(r'(\(.*(dirty|clean|intro).*\))', '', name, flags=re.I)
+    return removed.strip()
 
 def _get_matching_songs(user_song: song.Song, num_songs: int=spotify.QUERY_LIMIT) -> List[spotify.SpotifySong]:
     """
