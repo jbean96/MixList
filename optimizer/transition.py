@@ -88,81 +88,33 @@ class Transition(object):
         self.sections = [Section(offset=0, length=Lengths.VERSE, types=[Transition_Types.TEMPO_MATCH, Transition_Types.CROSSFADE])]
         self.effects = None
     
-    def find_ideal_mix_points(self, length: Lengths, step_a: int, step_b: int) -> tuple:
-        """
-        Find the best beat to transition for this mix considering amplitude of track_a and track_b throughout the songs.
-        Search sections of each song for the given length in increments at the given step.
-        """
-        # find optimal point in track_a to transition based on amplitude
-        assert isinstance(self.mix.track_a, UserSong)
-        assert isinstance(self.mix.track_b, UserSong)
-        # get the beat arrays for both songs
-        track_b_beats = self.mix.track_b.get_analysis_feature(Feature.BEATS)
-        track_a_beats = self.mix.track_a.get_analysis_feature(Feature.BEATS)
-        # calculate the number of beats
-        num_beats_in_a = len(track_a_beats)
-        num_beats_in_b = len(track_b_beats)
-        # make sure that the transition fits in this mix
-        assert num_beats_in_a >= length.value
-        assert num_beats_in_b >= length.value
-
-        # used for calculating average amplitude windows
-        half_of_length = (length.value // 2)
-
-        # make sure we're not trying to find the amplitude of a beat before/after the song, step by half_of_length
-        # store all the amplitudes for steps (don't recalculate)
-        b_amplitudes = list()
-        for i in range(0, num_beats_in_b - length.value, step_b):
-            beat_to_check_b = i + half_of_length
-            track_b_curr_amp = self.mix.track_b.get_amplitude_at_beat(beat=track_b_beats[beat_to_check_b], window_size=half_of_length)
-            b_amplitudes.append((i, track_b_curr_amp))
-        a_amplitudes = list()
-        for i in range(0, num_beats_in_a - length.value, step_a):
-            beat_to_check_a = i + half_of_length 
-            track_a_curr_amp = self.mix.track_a.get_amplitude_at_beat(beat=track_a_beats[beat_to_check_a], window_size=half_of_length)
-            a_amplitudes.append((i, track_a_curr_amp))
-
-        min_for_length = (None, None, 2.0) # beat and amplitude difference
-
-        for b_amp in b_amplitudes:
-            for a_amp in a_amplitudes:
-                diff = abs(a_amp[1] - b_amp[1])
-                if diff < min_for_length[2]:
-                    min_for_length = (a_amp[0], b_amp[0], diff)
-
-        return min_for_length
-    
-    def find_ideal_start_beat(self, start_b: int, length: Lengths, step: int) -> tuple:
+    @staticmethod
+    def find_ideal_start_beat(mix: Mix) -> List[tuple]:
         """
         Find the best beat to transition for this mix considering amplitude of track_a and track_b.
-        Search sections of the given length for a given step.
         """
-        # find optimal point in track_a to transition based on amplitude
-        assert isinstance(self.mix.track_a, UserSong)
-        assert isinstance(self.mix.track_b, UserSong)
-        # get the beat arrays for both songs
-        track_b_beats = self.mix.track_b.get_analysis_feature(Feature.BEATS)
-        track_a_beats = self.mix.track_a.get_analysis_feature(Feature.BEATS)
-        # calculate the number of beats
-        num_beats_in_a = len(track_a_beats)
-        num_beats_in_b = len(track_b_beats)
-        # make sure that the transition fits in this mix
-        assert num_beats_in_a >= length.value
-        assert num_beats_in_b >= length.value
-        # make sure that the start_b is within b
-        assert (start_b + length.value) < num_beats_in_b and start_b < num_beats_in_b
-        half_of_length = (length.value // 2)
-        track_b_start_amp = self.mix.track_b.get_amplitude_at_beat(beat=track_b_beats[start_b + half_of_length], window_size=half_of_length)
-        min_for_length = (None, 2.0) # beat and amplitude difference
-        # make sure we're not trying to find the amplitude of a beat before/after the song, step by half_of_length
-        for i in range(0, num_beats_in_a - length.value, step):
-            beat_to_check = i + half_of_length 
-            track_a_curr_amp = self.mix.track_a.get_amplitude_at_beat(beat=track_a_beats[beat_to_check], window_size=half_of_length)
-            diff = abs(track_a_curr_amp - track_b_start_amp)
-            if diff < min_for_length[1]:
-                min_for_length = (i, diff)
-        
-        return min_for_length
+        # consider starting section of track_b
+        # all the generated mixes
+        # TODO: assert that a song is a UserSong
+        best_transition_points = list() 
+        track_b = mix.track_b
+        assert isinstance(track_b, UserSong)
+        track_a = mix.track_a
+        assert isinstance(track_a, UserSong)
+        for length in Lengths:
+            min_for_length = (None, 2.0) # beat and amplitude difference
+            track_b_start_amp = track_b.get_amplitude_at_beat(beat=track_b.get_analysis_feature(Feature.BEATS[length/2]), window_size=length)
+            # find the ideal matching segment in track_a
+            track_a_beats = track_a.get_analysis_feature(Feature.BEATS)
+            num_beats = len(track_a_beats)
+            for i in range(0, num_beats):
+                # make sure we're not trying to find the amplitude of a beat before/after the song
+                if i >= length/2 and (i + length/2) <= num_beats:
+                   track_a_curr_amp = track_a.get_amplitude_at_beat(beat=track_a_beats[i], window_size=length)
+                   diff = abs(track_a_curr_amp - track_b_start_amp)
+                   if diff < min_for_length[1]:
+                       min_for_length = (i, diff)
+            best_beats.append((length, min_for_length[0])) 
 
         # consider starting point in track_a
 
@@ -171,6 +123,8 @@ class Transition(object):
         # create fade section
 
         # merge the sections if necessary
+
+        return best_beats
     
     def create_random_transition(self):
         """
@@ -211,6 +165,10 @@ class Transition(object):
         """
         Sets the state of this transition to be an ideal one based on various heuristics.
         """
+        # assume b transitions on into A on beat 0, determine the length of transition for 
+        self.start_b = 0
+
+
         # find the optimal minimum length for the given tempo change
         tempo_change = abs(self.mix.threshold[Cue.TEMPO.value])
 
@@ -224,22 +182,40 @@ class Transition(object):
             # go short or gooo long
             length = random.sample([Lengths.BAR, Lengths.PHRASE, Lengths.LONG], 1)[0]
 
-        # if the songs have similar valence then use something in the middle
-        self.start_b = 0
-        self.start_a = self.find_ideal_start_beat(self.start_b, length, length.value // 2)[0]
-
+        # find optimal point in A to transition based on amplitude
+        assert isinstance(self.mix.track_a, UserSong)
+        assert isinstance(self.mix.track_b, UserSong)
+        # get the beat arrays for both songs
+        track_b_beats = self.mix.track_b.get_analysis_feature(Feature.BEATS)
+        track_a_beats = self.mix.track_a.get_analysis_feature(Feature.BEATS)
+        # calculate the number of beats
+        num_beats_in_a = len(track_a_beats)
+        num_beats_in_b = len(track_b_beats)
+        assert num_beats_in_a >= length.value
+        assert num_beats_in_b >= length.value
+        half_of_length = (length.value // 2)
+        min_for_length = (None, 2.0) # beat and amplitude difference
+        track_b_start_amp = self.mix.track_b.get_amplitude_at_beat(beat=track_b_beats[half_of_length], window_size=half_of_length)
+        # make sure we're not trying to find the amplitude of a beat before/after the song, step by half_of_length
+        for i in range(0, num_beats_in_a - length.value, half_of_length):
+            beat_to_check = i + half_of_length 
+            track_a_curr_amp = self.mix.track_a.get_amplitude_at_beat(beat=track_a_beats[beat_to_check], window_size=half_of_length)
+            diff = abs(track_a_curr_amp - track_b_start_amp)
+            if diff < min_for_length[1]:
+                min_for_length = (i, diff)
+        self.start_a = min_for_length[0]
         # build the section based on length:
         types = None
         if length == Lengths.BAR: 
             # just a crossfade
             types = [Transition_Types.CROSSFADE]
-        elif length == Lengths.PHRASE or length == Lengths.HALF:
+        elif length == Lengths.PHRASE or Lengths.HALF:
             # crossfade with tempo match continious
             types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH]
         else:
-            # crossfade with tempo match 
+            # crossfade with tempo match half way
             types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH2]
-
+        
         self.sections = [Section(offset=0, length=length, types=types)]
     
     # TODO: step 1 find ideal length, based on song amplitude at a given point (add ability to detect vocals later)
