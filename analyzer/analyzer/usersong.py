@@ -103,7 +103,7 @@ class UserSong(Song):
             rms_array = self._rms_frames[window_size]
         else:
             self.load() # checks if there's no samples first
-            rms_array = librosa.feature.spectral.rms(y=self._samples, frame_length=window_size*2, \
+            rms_array = librosa.feature.rms(y=self._samples, frame_length=window_size*2, \
                 center=True, hop_length=util.HOP_LENGTH)[0]
             self._rms_frames[window_size] = rms_array
         frame_index = beat.get_frame()
