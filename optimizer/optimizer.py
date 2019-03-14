@@ -173,7 +173,7 @@ class Optimizer(object):
                 next_mix_score = curr_state[3] + scored_mix[1]
                 new_state = (next_song, next_set_list, next_mix_list, next_mix_score)
                 # if we're out of songs
-                if len(next_set_list) == 6:
+                if len(next_set_list) < len(self.library):
                     complete_mixtapes.append(new_state)
                 else:
                     mixtapes_to_finish.append(new_state)

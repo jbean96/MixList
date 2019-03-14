@@ -152,6 +152,12 @@ class Transition(object):
             # crossfade with tempo match half way
             self.sections = [Section(offset=0, length=length, types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH2])]
     
+    def create_last_track_outro(self):
+        """
+        Creates a smooth fade out for the last track of a mix.
+        """
+        raise NotImplementedError()
+    
     def create_ideal_intro_transition(self):
         """
         Sets the state of this transition to be an ideal one based on various heuristics.
