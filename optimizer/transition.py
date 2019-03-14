@@ -5,7 +5,8 @@ from .style import Style
 from analyzer.usersong import UserSong
 from analyzer.song import Song
 from analyzer.analysis import Feature
-from typing import List
+from typing import List, Dict
+from composer.audio_effect_types import Transition_Types, Effect_Types
 
 class Transition(object):
     """
@@ -13,23 +14,36 @@ class Transition(object):
     Creates an ideal transition between two songs given a Mix and a Style.
     """
 
-    # TODO: define basic transitions as class constants
-        # crossfade
-        # tempo change
-
     def __init__(self, mix: Mix, style: Style):
         """
         Creates a new transition object.
         """
         self.mix = mix
         self.style = style
-        self.sections = list()
+        self.start_a = None
+        self.start_b = None
+        self.sections = None # later list() of sections
+        self.effects = None # later list() of effects
     
-    def get_data(self) -> numpy.array:
+    def to_script(self) -> Dict:
+        return {"song_a": self.mix.track_a, "song_b": self.mix.track_b, "start_a": self.start_a, "start_b": self.start_b, "sections": self.sections}
+    
+    def simple_LONG(self):
         """
-        Returns the data for this Transition object.
+        Sets the state of this transition to have attributes that represent
+        a 32 beat crossfade and sliding tempo change from track_a to track_b in the Mix.
         """
-        return self.data
+        track_a_len = len(self.mix.track_a.get_analysis_feature(Feature.BEATS))
+        track_b_len = len(self.mix.track_b.get_analysis_feature(Feature.BEATS))
+        assert track_a_len >= 32
+        assert track_b_len >= 32
+        # start 32 beats from the end of track_a
+        self.start_a = track_b_len - 33
+        # start at the beginning of track_b
+        self.start_b = 0
+        # construct the 32 beat crossfade and sliding tempo change section
+        self.sections = [Section(offset=0, length=Lengths.VERSE, types=[Transition_Types.TEMPO_MATCH, Transition_Types.CROSSFADE])]
+        self.effects = None
     
     @staticmethod
     def find_ideal_start_beat(mix: Mix) -> List[tuple]:
@@ -38,6 +52,7 @@ class Transition(object):
         """
         # consider starting section of track_b
         # all the generated mixes
+        # TODO: assert that a song is a UserSong
         best_beats = list() 
         track_b = mix.track_b
         assert isinstance(track_b, UserSong)
@@ -73,8 +88,29 @@ class Transition(object):
     # TODO: apply echo if the transition needs it on the way out
     # TODO: add a "to script" method which converts the transition to a valid script for composer
 
+class Section(object):
+
+    def __init__(self, offset: int, length: Lengths, types: List[Transition_Types]):
+        self.offset = offset
+        self.length = length
+        self.type = types
+
+    def to_script(self) -> Dict:
+        return {"offset": self.offset, "length": self.length.value, "type": self.type}
+
+class Effect(object):
+
+    def __init__(self, offset: int, length: Lengths, types: List[Effect_Types]):
+        self.offset = offset
+        self.length = length
+        self.type = types
+    
+    def to_script(self) -> Dict:
+        return {"offset": self.offset, "length": self.length.value, "type": self.type}
+
 class Lengths(Enum):
-    QUICK = 4
-    SHORT = 8
-    AVERAGE = 16
-    LONG = 32
+    BAR = 4
+    PHRASE = 8
+    HALF = 16
+    VERSE = 32
+    LONG = 64
