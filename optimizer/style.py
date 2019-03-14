@@ -2,7 +2,7 @@ from .threshold import Cue
 from .mix import Mix
 from enum import Enum
 import numpy
-import scipy
+import scipy.stats as stats
 
 class Style(object):
     """
@@ -24,7 +24,7 @@ class Style(object):
         self.dev = deviation
         assert numpy.sum(weight) <= self.MAX_SCORE
         self.weight = weight
-        self.distr = scipy.stats.norm
+        self.distr = stats.norm
     
     def score_mix(self, mix: Mix) -> float:
         """
@@ -45,7 +45,7 @@ class Style(object):
     
     def mix_feature_score(self, mix: Mix, feature: Cue) -> float:
         """
-        Return the score for this style for a Mix considering only a single feature. Returns numpy.nan if Mix feature is numpy.nan.
+        Return the score for this style for a Mix considering only a single feature WEIGHTED. Returns numpy.nan if Mix feature is numpy.nan.
         """
         if numpy.isnan(mix.threshold[feature.value]):
             return numpy.nan
