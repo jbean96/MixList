@@ -51,6 +51,6 @@ print("***MIX SCRIPT RESULT***")
 for mix in mix_script:
     print(mix)
 
-#c = composer.composer_parser(mix_script)
+c = composer.composer_parser(mix_script)
 
-#c.compose()
+c.compose()

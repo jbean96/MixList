@@ -203,7 +203,7 @@ class Optimizer(object):
             # create the transition
             curr_transition = Transition(curr_mix, self.style)
             # simplify that ish mang.
-            curr_transition.simple() 
+            curr_transition.create_random_transition()
             curr_script =  curr_transition.to_script()
             transition_script.append(curr_script)
 
