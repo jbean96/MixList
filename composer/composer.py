@@ -1,10 +1,10 @@
+import sys
 import time
 from typing import Dict, List, Union, Tuple
 
 from analyzer import analysis
 from .audio_effect_types import Transition_Types
 from . import pipeclient
-
 
 """
 This class opens a new pipe client with Audacity to perform Audacity commands via
@@ -100,11 +100,7 @@ class composer(object):
         """
         leading_tempo: float = transition["leading_tempo"]
         following_tempo: float = transition["following_tempo"]
-        print('leading_tempo = ' + str(leading_tempo))
-        print('following_tempo = ' + str(following_tempo))
         leading_tempo, following_tempo = tempomultiple(leading_tempo, following_tempo)
-        print('leading_tempo = ' + str(leading_tempo))
-        print('following_tempo = ' + str(following_tempo))
         # Stretch following track
         self.write("Select: Track=" + str(transition['following_track']))
         self.write("SelectTime: Start=" + str(transition['following_start_transition']) + " End=" + str(transition['following_end_transition']))
@@ -122,11 +118,7 @@ class composer(object):
         """
         leading_tempo: float = transition["leading_tempo"]
         following_tempo: float = transition["following_tempo"]
-        print('leading_tempo = ' + str(leading_tempo))
-        print('following_tempo = ' + str(following_tempo))
         leading_tempo, following_tempo = tempomultiple(leading_tempo, following_tempo)
-        print('leading_tempo = ' + str(leading_tempo))
-        print('following_tempo = ' + str(following_tempo))
 
         # Stretch leading track
         self.write("Select: Track=" + str(transition['leading_track']))
@@ -229,7 +221,6 @@ class composer_parser(object):
 
     # TODO: handle multiple sections per transition
     def compose(self):
-
         if len(self.transitions) < 0:
             return -1
         c_songs = []
@@ -255,7 +246,6 @@ class composer_parser(object):
             # Set Intro to following song
             beats_array = self.transitions[i]['song_b'].get_analysis_feature(analysis.Feature.BEATS)
             start_time = beats_array[self.transitions[i]['start_b']].get_start_time()
-            print("{}".format(start_time))
             c_songs.insert(i + 1, {
                 'start_intro': start_time.item(),
                 'end_intro': get_end_transition_timestamp(beats_array, self.transitions[i]['start_b'],
@@ -283,6 +273,8 @@ class composer_parser(object):
         c = composer(c_songs, c_transitions)
         # calling new just before import throws an error because the window can't load fast enough
         c.new()
+        sys.stdout.write('Mixing songs in Audactiy\n')
+        sys.stdout.flush()
         time.sleep(3)
         # The order of songs imported must match order of c_songs
         c.importaudio()

@@ -181,7 +181,7 @@ class PipeClient(object):
 
         """
         self.timer = timer
-        print('Sending command:', command)
+        #print('Sending command:', command)
         self._write_pipe.write(command + EOL)
         # Check that read pipe is alive
         if PipeClient.reader_pipe_broken.isSet():
@@ -289,7 +289,7 @@ def main():
                     reply = 'PipeClient: Reply timed-out.'
                 else:
                     reply = client.read()
-            print(reply)
+            #print(reply)
 
 
 if __name__ == '__main__':
