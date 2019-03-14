@@ -28,7 +28,11 @@ class UserSong(Song):
             raise ValueError('File must be one of: %s' % UserSong.EXTENSIONS)
         self._extension = extension
         # If the extension is an mp3, load the id3 tag
-        self._id3 = eyed3.load(path).tag if extension == '.mp3' else None
+        self._id3 = None
+        try:
+            self._id3 = eyed3.load(path).tag 
+        except:
+            pass
 
         super(UserSong, self).__init__(name)
 
