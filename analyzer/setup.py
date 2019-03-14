@@ -9,7 +9,7 @@ setup(name="analyzer",
         license="MIT",
         packages=["analyzer"],
         install_requires=[
-            "librosa",
+            "librosa==0.6.3",
             "dill",
             "spotipy",
             "numpy",
