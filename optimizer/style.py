@@ -45,7 +45,7 @@ class Style(object):
     
     def mix_feature_score(self, mix: Mix, feature: Cue) -> float:
         """
-        Return the score for this style for a Mix considering only a single feature.
+        Return the score for this style for a Mix considering only a single feature. Returns numpy.nan if Mix feature is numpy.nan.
         """
         if numpy.isnan(mix.threshold[feature.value]):
             return numpy.nan
