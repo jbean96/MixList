@@ -13,6 +13,8 @@ class Mix(object):
     Later version features:
         - consider different sections of each song
         - consider multiple songs
+    TODO: add the ability to initialize with a song and a MixGoal, allowing the DJ to interpret
+    the goals --> turn this into a boolean feature?
     """
     def __init__(self, track_a: Song, track_b: Song):
         """
