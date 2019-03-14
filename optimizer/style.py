@@ -4,19 +4,13 @@ from enum import Enum
 import numpy
 import scipy
 
-class Score_Weight(Enum):
-    TEMPO = 10.0
-    KEY = 0.0
-    DANCE = 0.0
-    ENERGY = 0.0
-    VALENCE = 0.0
-
 class Style(object):
     """
     Represents a DJs "style" using normal distributions and weights for each threshold feature:
     mean: [TEMPO, KEY, DANCE, ENERGY, VALENCE]
     dev: [TEMPO, KEY, DANCE, ENERGY, VALENCE]
     weight: [TEMPO, KEY, DANCE, ENERGY, VALENCE]
+    TODO: add pace consistency, how often does this DJ stick to the pace?
     """
 
     MAX_SCORE = 10.0
