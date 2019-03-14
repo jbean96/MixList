@@ -6,6 +6,13 @@ CSE 481I: Sound Design capstone project for Josh Bean, Jeremy Cruz and Gerard Ga
 
 Before everything can work together you need to download the source code for Audacity and install it with `mod-script-pipe` enabled. There are instructions for downloading the source code and installing it [here](https://www.audacityteam.org/download/source/). There is also some information about enabling `mod-script-pipe` [here](https://manual.audacityteam.org/man/scripting.html). In order to get it to run on Windows we had to build and run from Visual Studio. For some reason running Audacity from the executable file wouldn't allow `mod-script-pipe` to work even though it was enabled.
 
+Also since we are using Spotify you need to add a `config.py` file to the `mixlist/analyzer/analyzer` folder before `pip install .`. This config file should contain two variables:
+
+```python
+CLIENT_ID = <your client id>
+CLIENT_SECRET = <your client secret>
+```
+
 ## Top Level
 
 - `main.py` runs the GUI for MixList. By default it will create a cache in the folder you are running it from called `mixlist_cache`. There it will store all the serialized analyses for files that it has analyzed.

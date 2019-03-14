@@ -9,3 +9,4 @@ keyfinder/data
 keyfinder/data.tar.gz
 djskinnyg_songs*
 *egg-info
+analyzer/analyzer/config.py
