@@ -2,7 +2,7 @@ import numpy, sys, os
 from analyzer.song import Song
 from analyzer.analysis import Feature
 sys.path.append(os.path.normpath(os.path.join(os.path.realpath(__file__), "..", "..")))
-from .transition import Transition
+from optimizer.mix_goal import MixGoal
 
 class Mix(object):
     """
@@ -33,38 +33,14 @@ class Mix(object):
         self.threshold = self.__compare_songs(self.track_a, self.track_b)
     
     @classmethod
-    def from_old_mix(self, old_mix: 'Mix', transition: Transition, new_comp: numpy.array):
+    def compare_song_to_goal(self, song: Song, goal: MixGoal) -> 'Mix':
         """
-        Keyword Args:
-            old_mix: a Mix instance to copy.
-            transition: a transition to add to the new Mix instances transition history.
-            new_comp: the comparison vector to use for the new Mix instance.
+        Creates a valid Mix instace using the shared attributes of a Song and MixGoal.
         
-        Initializes a new Mix instance as a copy of the old_mix instance with transition
-        added to the end of its transition history.
+        Allows the DJ's Style to make decisions about the adherence to the MixGoals.
         """
-        self.track_a = old_mix.track_a
-        self.track_b = old_mix.track_b
-        old_trans = list()
-        for t in old_mix.tran_history:
-            old_trans.append(t)
-        old_trans.append(transition)
-        self.history = numpy.array(old_trans)
-        self.threshold = new_comp
-
-    def apply_transition(self, tran: Transition) -> 'Mix':
-        """
-        Keyword Args:
-            tran: a Transition instance to be applied to this Mix object.
-
-        Takes a transition and returns a new Mix object representing
-        the mix between two songs using the given Transition, the new Mix object
-        has the transition recorded in its history.
-        """
-        # apply the transition to the two songs "comparison"
-        new_threshold = numpy.multiply(self.threshold, tran.get_data())
-        # return a new Mix instance with updated transition history and comparison
-        return self.from_old_mix(old_mix=self, transition=tran, new_comp=new_threshold)
+        # TODO: implement this
+        raise NotImplementedError()
 
     def __compare_songs(self, track_a: Song, track_b: Song) -> numpy.array:
         """
