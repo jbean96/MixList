@@ -8,6 +8,45 @@ from analyzer.analysis import Feature
 from typing import List, Dict
 from composer.audio_effect_types import Transition_Types, Effect_Types
 
+class Lengths(Enum):
+    BAR = 4
+    PHRASE = 8
+    HALF = 16
+    VERSE = 32
+    LONG = 64
+
+class Section(object):
+
+    def __init__(self, offset: int, length: Lengths, types: List[Transition_Types]):
+        self.offset = offset
+        self.length = length
+        self.type = types
+    
+    def __str__(self):
+        return str(self.to_script())
+    
+    def __repr__(self):
+        return str(self.to_script())
+
+    def to_script(self) -> Dict:
+        return {"offset": self.offset, "length": self.length.value, "type": self.type}
+
+class Effect(object):
+
+    def __init__(self, offset: int, length: Lengths, types: List[Effect_Types]):
+        self.offset = offset
+        self.length = length
+        self.type = types
+
+    def __str__(self):
+        return str(self.to_script())
+    
+    def __repr__(self):
+        return str(self.to_script())
+    
+    def to_script(self) -> Dict:
+        return {"offset": self.offset, "length": self.length.value, "type": self.type}
+
 class Transition(object):
     """
     Represents a "transition" between two songs.
@@ -28,7 +67,7 @@ class Transition(object):
     def to_script(self) -> Dict:
         return {"song_a": self.mix.track_a, "song_b": self.mix.track_b, "start_a": self.start_a, "start_b": self.start_b, "sections": self.sections}
     
-    def simple_LONG(self):
+    def simple(self):
         """
         Sets the state of this transition to have attributes that represent
         a 32 beat crossfade and sliding tempo change from track_a to track_b in the Mix.
@@ -87,30 +126,3 @@ class Transition(object):
     # TODO: find ideal location to transition (amplitude, progress, bonus points for correct phrasing)
     # TODO: apply echo if the transition needs it on the way out
     # TODO: add a "to script" method which converts the transition to a valid script for composer
-
-class Section(object):
-
-    def __init__(self, offset: int, length: Lengths, types: List[Transition_Types]):
-        self.offset = offset
-        self.length = length
-        self.type = types
-
-    def to_script(self) -> Dict:
-        return {"offset": self.offset, "length": self.length.value, "type": self.type}
-
-class Effect(object):
-
-    def __init__(self, offset: int, length: Lengths, types: List[Effect_Types]):
-        self.offset = offset
-        self.length = length
-        self.type = types
-    
-    def to_script(self) -> Dict:
-        return {"offset": self.offset, "length": self.length.value, "type": self.type}
-
-class Lengths(Enum):
-    BAR = 4
-    PHRASE = 8
-    HALF = 16
-    VERSE = 32
-    LONG = 64

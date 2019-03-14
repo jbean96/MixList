@@ -1,17 +1,19 @@
-import sys, os, numpy, random
+import sys, os, numpy, random, math
 lib_path = os.path.normpath(os.path.join(os.path.realpath(__file__), '..', '..'))
 sys.path.append(lib_path)
-from analyzer import song
+from analyzer.song import Song
 from analyzer import analysis
-from .transition import Transition
-from .threshold import Cue
-from .mix import Mix
-from .mix_goal import MixGoal
-from .style import Style
+from analyzer import usersong
+from optimizer.transition import Transition
+from optimizer.threshold import Cue
+from optimizer.mix import Mix
+from optimizer.mix_goal import MixGoal
+from optimizer.style import Style
 from typing import Dict
 from typing import List
 from typing import Set
-from composer import audio_effect_types as FX 
+from composer.audio_effect_types import Transition_Types
+from composer.audio_effect_types import Effect_Types
 
 class Optimizer(object):
     """ 
@@ -22,24 +24,27 @@ class Optimizer(object):
     TODO: create and parameterize a library of high level transitions
     TODO: create a library of different "styles"
     TODO: generate mixes using up to N length song sequences
+    TODO: change the options for factoring in Style, currently --> calculate every Mix and compare to style
+        choose a feature from style (based on priority) --> choose a style value, make only mixes in that range
+        choose the next feature (based on priority or random) --> choose a style value, select only mixes in that range from previous
+        etc..
     """
-    def __init__(self, songs: List[song.Song], goals: List[MixGoal], transitions: List[Transition]=None, style: Style=None):
+    def __init__(self, songs: List[usersong.UserSong], goals: List[MixGoal], style: Style):
         """
         Initializes an Optimizer object using given params.
 
         Keyword args:
-            songs: list of Song objects to create the mixtape.
+            songs: list of UserSong objects to create the mixtape.
             goals: list of MixGoal objects to guide the construction of the mixtape.
-            transitions: list of transitions available to use in the creation of the mixtape.
-            style: style of the DJ used to influence mixtape creation. 
+            style: Style of the DJ used to influence mixtape creation. 
         """
-        # check arguments are valid
+        # Validate UserSong objects.
+        self.library = set() 
+        # ***DJ PUN AIRHORN***
 
-        # Validate songs.
-        self.songs = set()
         for s in songs:
-            assert isinstance(s, song.Song)
-            self.songs.add(s)
+            assert isinstance(s, usersong.UserSong)
+            self.library.add(s)
 
         # Validate goals.
         self.goals = list()
@@ -47,32 +52,18 @@ class Optimizer(object):
             assert isinstance(g, MixGoal)
             # check that the time stamps are strictly increasing
             if (len(self.goals) > 1):
-                assert self.goals[len(self.goals - 1)].get_time() < g.get_time()
+                assert self.goals[len(self.goals - 1)].time < g.time
             # insert the goal
             self.goals.append(g)
 
-        # Validate style (might be none).
-        if style is not None:
-            self.style = style
-        
-        # Validate transitions (might be none).
-        self.transitions = set()
-        if transitions is not None:
-            for t in transitions:
-                assert isinstance(t, Transition)
-                self.transitions.add(t)
+        # Make sure this DJ's legit.
+        assert isinstance(style, Style)
+        self.style = style
 
-        # initialize the current goal to be the first goal given
-        self.curr_goal = goals[0]
-        # no songs have been played in this SET (pun-intended)
-        self.songs_played = set()
-
-    def get_next_possibilities(self, a) -> Set[Mix]:
+    def get_possible_mixes(self, curr_song: Song, played_songs: Set[Song], max_results=2) -> Set[tuple]:
         """
-        Returns a list of possible next songs from unplayed songs given a.
-        If there are no unplayed songs then return None.
-
-        Keyword args:
+        Returns all possible (Mix, style_score) Tuples given curr_song and all unplayed songs 
+        according to this DJ's style. If there are no unplayed songs then return None.
         """
         # consider possibilities
             # all songs --> compare to current --> results_1
@@ -80,51 +71,36 @@ class Optimizer(object):
             # r_2 --> evaluate transitions --> progress to goal threshold --> r_3
             # r_3 --> style threshold --> possibilities
 
-        unplayed_songs = self.songs - self.songs_played
-        if (len(unplayed_songs) == 0):
+        if (len(played_songs) == len(self.library)):
             # if all songs have been played then return None
             return None
 
-        # initialize possible mixes
+        # get ready to start thinking really hard...
         possible_mixes = set()
+        unplayed_songs = self.library - played_songs
 
         # generate all possible mixes just comparing songs
         for song in unplayed_songs:
-            possible_mixes.add(self.mix_songs(a, song))
+            possible_mixes.add(self.mix_songs(curr_song, song))
         
-        # score the mixes against this style if exists
-        if self.style is not None:
-            mix_scores = [(m, self.style.score_mix(m)) for m in possible_mixes]
-            # get up to the top 3 mixes
-            mix_scores.sort(key=lambda tup: tup[1], reverse=True)
-            best_mix = mix_scores.pop(0)
-            possible_mixes = set([best_mix])
-            """
-            i = 0
-            while i < 1 and len(mix_scores) > 0:
-                mix_to_add = mix_scores.pop(0)
-                possible_mixes.add(mix_to_add[0])
-                print("[{}] -> [{} : {}] -> [{}]".format(mix_to_add[0].track_a, mix_to_add[0].threshold, mix_to_add[1], mix_to_add[0].track_b))
-                i += 1
-            """
+        # consider your STYLE
+        scored_mixes = [(m, self.style.score_mix(m)) for m in possible_mixes]
+        # only play your best mixes live 
+        scored_mixes.sort(key=lambda tup: tup[1], reverse=True)
+        # return <= max_results possible mixes
+        cutoff = min(len(scored_mixes), max_results)
+        possible_mixes = scored_mixes[:cutoff]
+
         """
-        if len(self.transitions) > 0:
-            # generate the ideal transition for each remaining mix
-            possible_mixes_t = set()
-            for p in possible_mixes:
-                for t in self.transitions:
-                    possible_mixes_t.add(p.apply_transition(t))
-            possible_mixes = possible_mixes_t
-        """ 
-        #start_beat_options = Transition.find_ideal_start_beat(best_mix)
-        # get the best mix with it's transition by comparing back to style
+        for mix_to_add in possible_mixes:
+            print("[{}] -> [{} : {}] -> [{}]".format(mix_to_add[0].track_a, mix_to_add[0].threshold, mix_to_add[1], mix_to_add[0].track_b))
+        """
 
         return possible_mixes
 
     def generate_mixtape(self) -> List:
         """
-        Generates a mixtape using this optimizer's state.
-        Keyword args:        
+        Generates a mixtape using this Optimizer's state.
         """
         # choose the first song (closest to initial goal, based on song comparison)
         """ 
@@ -158,56 +134,74 @@ class Optimizer(object):
             # check goal progress
                 # determine if moving to next goal
 
-        # first song chosen is random
-        curr_song = random.sample(self.songs, 1)[0]
-        # add the first song to played
-        self.songs_played.add(curr_song)
-        # find all the songs that have not yet been played
-        unplayed_songs = self.songs - self.songs_played
-        # initialize an empty list
+        # v2 algorithm:
+            # for each path between goals create a small mixtape based on two goals:
+            # high level --> do a DFS between "goals" to find the best possible mix path, then create the transitions to fit the mix path.
+                # if this is the first goal then choose a song closest to the goal (use get next possibilities)
+                # choose an end song that is closest to the end goal (use get next possibilities)
+                # get the time between this goal and end goal, convert that to a number of songs based on "pace"
+                # generate the best possible mix path for that number of songs
+                # decide the time to complete transition based on the pace consistency
+                # decide the optimial transition
+
+        # no songs have been played in this SET ***DJ PUN AIRHORN***
+        set_list = set()
+        # the truth:
+        curr_song = random.sample(self.library, 1)[0]
+        # make sure we know what we played
+        set_list.add(curr_song)
+        # hit "record" in your DJ software
         mix_list = list()
-        # add curr song to the list
-        mix_list.append(curr_song)
-
-        # order the songs based on tempo
-        while (len(unplayed_songs) > 0):
-            possible = self.get_next_possibilities(curr_song)
-            # choosed next song based on closest tempo
-            assert len(possible) > 0
-            next_mix = possible.pop()
-            self.songs_played.add(next_mix.track_b)
-            curr_song = next_mix.track_b
-            mix_list.append(next_mix)
-            unplayed_songs.remove(next_mix.track_b)
-
-        return self.generate_basic_mix_script(mix_list)
+        # the current state of the mixtape: (song, set, mix, score)
+        mixtapes_to_finish = [(curr_song, set_list, mix_list, 0.0)]
+        complete_mixtapes = []
+        # TODO: update this condition to factor in goals, otherwise we're never leaving this party.
+        while len(mixtapes_to_finish) > 0:
+            # decide the possible next mixes...
+            curr_state = mixtapes_to_finish.pop(0)
+            possible = self.get_possible_mixes(curr_state[0], curr_state[1])
+            # make sure to take your headphones off once in a while
+            for scored_mix in possible:
+                next_song = scored_mix[0].track_b
+                # don't commit the cardinal sin #norepeats
+                next_set_list = set(curr_state[1])
+                next_set_list.add(next_song)
+                # WOAH sick mix ~bro~ better upload that to SoundCloud
+                next_mix_list = list(curr_state[2])
+                next_mix_list.append(scored_mix[0])
+                # update the mix_list score
+                next_mix_score = curr_state[3] + scored_mix[1]
+                new_state = (next_song, next_set_list, next_mix_list, next_mix_score)
+                # if we're out of songs
+                if len(next_set_list) == 16:
+                    complete_mixtapes.append(new_state)
+                else:
+                    print(len(next_set_list))
+                    mixtapes_to_finish.append(new_state)
+        # get the best mixtape based on mix score
+        best_mixtape = max(complete_mixtapes, key= lambda tup: tup[3])
+        # generate the mix script for the best mixtape
+        return self.generate_simple_transition_script(best_mixtape[2])
     
-    @staticmethod
-    def generate_basic_mix_script(mix_list: List[Mix]) -> List:
+    def generate_simple_transition_script(self, mix_list: List[Mix]) -> List[Dict]:
         """
-        Takes a list of Song objects and convert it to a mix script using a simple transition.
+        Takes a list of Mix instances and generates the a Transition script using the simple Transition
+        for each Mix.
         """
-        mix_script = list()
-        # pass transition type
-        t_1 = FX.Transition_Types.CROSSFADE
-        t_2 = FX.Transition_Types.TEMPO_MATCH
-        # transition is length is always 16 
-        # curr song
-        curr_mix = mix_list.pop(0)
-        # while there are still songs in the mix list 
+        transition_script = list()
+        # get the first mix
+        curr_mix = None
+        # while there are still mixes in the mix_list
         while(len(mix_list) > 0):
-            curr_song = curr_mix.track_a
-            next_song = curr_mix.track_b
-            start_beats = Transition.find_ideal_start_beat(curr_mix)
-            chosen_start = random.choice(start_beats)
-            song_a_text = "{} - {}".format(curr_song.get_analysis_feature(analysis.Feature.NAME), curr_song.get_analysis_feature(analysis.Feature.TEMPO))
-            song_b_text = "{} - {}".format(next_song.get_analysis_feature(analysis.Feature.NAME), next_song.get_analysis_feature(analysis.Feature.TEMPO))
-            curr_script = {"song_a": curr_song,  "song_b": next_song, "start_a": chosen_start[1], "start_b": 0, "sections":
-                            [{"offset": 0, "length": chosen_start[0], "type": [t_1, t_2]}]
-                          }
             curr_mix = mix_list.pop(0)
-            mix_script.append(curr_script)
-        return mix_script
+            # create the transition
+            curr_transition = Transition(curr_mix, self.style)
+            # simplify that ish mang.
+            curr_transition.simple() 
+            curr_script =  curr_transition.to_script()
+            transition_script.append(curr_script)
+
+        return transition_script
 
         """
         TODO:
@@ -216,8 +210,17 @@ class Optimizer(object):
         effect: {start_offset: integer, end_offset: integer, type: effect_type}
         """
 
+    @ staticmethod 
+    def compare_song_to_goal(song: Song, goal: MixGoal) -> float:
+        """
+            Return a value <= 0.0 comparing a Song to the MixGoal based on qualitative features.
+            Lower value means higher similarity.
+        """
+        score = 0.0
+        raise NotImplementedError()
+
     @staticmethod
-    def mix_songs(a: song.Song, b: song.Song) -> Mix:
+    def mix_songs(a: usersong.UserSong, b: usersong.UserSong) -> Mix:
         """
         Compares two songs a and b based on properties of song skeleton.
         Returns a mix_sequence object representing the difference between the two songs
@@ -228,18 +231,6 @@ class Optimizer(object):
             b: the second song to be mixed of Song type.
         """
         return Mix(a, b)
-
-    @staticmethod
-    def eval_transition(a: song.Song, b: song.Song, t: Transition) -> Mix:
-        """
-        Returns the mix_sequence between two songs evaluated for a specific transition.
-
-        Keyword args:
-            a: the first song to be mixed fo Song type.
-            b: the second song to be mixed of Song type.
-            t: the transition to apply to the mix.
-        """
-        return Mix(a, b).apply_transition(t)
 
     @staticmethod
     def in_threshold_range(mix: Mix, min: numpy.array, max: numpy.array) -> bool:
@@ -261,7 +252,7 @@ class Optimizer(object):
         return True
 
     @staticmethod
-    def generate_3_track(a: song.Song, b: song.Song, c: song.Song) -> List:
+    def generate_3_track(a: Song, b: Song, c: Song) -> List[Dict]:
         """
         For testing purposes.
         Returns a structure ready for the composer that represents a mix between
@@ -278,8 +269,8 @@ class Optimizer(object):
         # transition is length is always 16
         length = 32
         # pass transition type
-        t_1 = "crossfade"
-        t_2 = "tempomatch"
+        t_1 = Transition_Types.CROSSFADE
+        t_2 = Transition_Types.TEMPO_MATCH
         mix = [
                 {"song_a": a, "song_b": b, "start_a": beat_a_0,"start_b": beat_b_0, "sections":
                     [{"offset": 0, "length": length, "type": [t_1, t_2]}]

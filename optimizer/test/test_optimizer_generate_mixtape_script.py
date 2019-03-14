@@ -41,10 +41,10 @@ for song in song_objects:
     print("{} : {} : {} : {} : {} : {}".format(song.get_analysis_feature(analysis.Feature.NAME), song.get_analysis_feature(analysis.Feature.TEMPO), song.get_analysis_feature(analysis.Feature.KEY), song.get_analysis_feature(analysis.Feature.DANCEABILITY), song.get_analysis_feature(analysis.Feature.ENERGY), song.get_analysis_feature(analysis.Feature.VALENCE)))
 
 # create a list with one goal (start)
-first_goal = mix_goal.MixGoal(song_objects[0], 0.0)
+first_goal = mix_goal.MixGoal(0.0, 0.0, 0.0, 0.0, 1)
 goals = list([first_goal])
 # initialize optimizer
-dj = optimizer.Optimizer(song_objects, goals, None, style.Style_Lib.tempo_based.value)
+dj = optimizer.Optimizer(song_objects, goals, style.Style_Lib.tempo_based.value)
 mix_script = dj.generate_mixtape()
 print("***MIX SCRIPT RESULT***")
 
