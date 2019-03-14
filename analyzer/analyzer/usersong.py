@@ -176,7 +176,8 @@ def analyze_user_song_from_cache(user_song: UserSong, cache_path: str) -> bool:
 def analyze_user_song(user_song: UserSong):
     user_song.load()
     user_song.analyze()
-    user_song.analyze_spotify()
+    if user_song.analyze_spotify():
+        print("Found spotify match for %s" % user_song.get_name())
 
 def batch_create_user_songs(file_paths: List[str], load_on_init: bool=util.LOAD_SONGS_ON_INIT) -> List[UserSong]:
     """
