@@ -1,4 +1,5 @@
 import eyed3.id3
+import re
 from typing import List, Tuple
 
 from . import spotify
@@ -17,6 +18,7 @@ NUM_SONGS = 3
 
 def _construct_query_from_id3(id3_tag: eyed3.id3.tag.Tag) -> str:
     track_name = id3_tag.title
+    track_name = _remove_song_version(track_name)
     artist = id3_tag.album_artist if id3_tag.album_artist is not None else id3_tag.artist
     if track_name is None:
         return None
@@ -26,8 +28,11 @@ def _construct_query_from_id3(id3_tag: eyed3.id3.tag.Tag) -> str:
     return query
 
 def _construct_query_from_name(name: str) -> str:
-    query = 'track:%s' % name
+    query = 'track:%s' % _remove_song_version(name)
     return query
+
+def _remove_song_version(name: str) -> str:
+    return re.sub(r'(\(.*(dirty|clean|intro).*\))', '', name, flags=re.I)
 
 def _get_matching_songs(user_song: song.Song, num_songs: int=spotify.QUERY_LIMIT) -> List[spotify.SpotifySong]:
     """
