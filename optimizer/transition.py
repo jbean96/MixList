@@ -96,7 +96,7 @@ class Transition(object):
         # consider starting section of track_b
         # all the generated mixes
         # TODO: assert that a song is a UserSong
-        best_beats = list() 
+        best_transition_points = list() 
         track_b = mix.track_b
         assert isinstance(track_b, UserSong)
         track_a = mix.track_a
@@ -139,18 +139,21 @@ class Transition(object):
         track_a_beats = self.mix.track_a.get_analysis_feature(Feature.BEATS)
         number_of_verses = len(track_a_beats) // Lengths.VERSE.value
         # somewhere after the first verse and before the last verse
-        self.start_a = random.randint(1, number_of_verses - 1) * Lengths.VERSE.value
-        # choose transition types
-        # based on length:
+        assert len(track_a_beats) >= length.value
+        # select a start point at anywhere between first verse and last full verse
+        self.start_a = (random.randint(1, number_of_verses - 1)) * (Lengths.VERSE.value)
+        # build the section based on length:
+        types = None
         if length == Lengths.BAR: 
             # just a crossfade
-            self.sections = [Section(offset=0, length=length, types=[Transition_Types.CROSSFADE])]
+            types = [Transition_Types.CROSSFADE]
         elif length == Lengths.PHRASE or Lengths.HALF:
             # crossfade with tempo match continious
-            self.sections = [Section(offset=0, length=length, types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH])]
+            types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH]
         else:
             # crossfade with tempo match half way
-            self.sections = [Section(offset=0, length=length, types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH2])]
+            types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH2]
+        self.sections = [Section(offset=0, length=length, types=types)]
     
     def create_last_track_outro(self):
         """
@@ -165,9 +168,6 @@ class Transition(object):
         # assume b transitions on into A on beat 0, determine the length of transition for 
         self.start_b = 0
 
-        # get the beat arrays for both songs
-        track_b_beats = self.mix.track_b.get_analysis_feature(Feature.BEATS)
-        track_a_beats = self.mix.track_a.get_analysis_feature(Feature.BEATS)
 
         # find the optimal minimum length for the given tempo change
         tempo_change = abs(self.mix.threshold[Cue.TEMPO.value])
@@ -185,7 +185,10 @@ class Transition(object):
         # find optimal point in A to transition based on amplitude
         assert isinstance(self.mix.track_a, UserSong)
         assert isinstance(self.mix.track_b, UserSong)
-
+        # get the beat arrays for both songs
+        track_b_beats = self.mix.track_b.get_analysis_feature(Feature.BEATS)
+        track_a_beats = self.mix.track_a.get_analysis_feature(Feature.BEATS)
+        # calculate the number of beats
         num_beats_in_a = len(track_a_beats)
         num_beats_in_b = len(track_b_beats)
         assert num_beats_in_a >= length.value
@@ -200,15 +203,12 @@ class Transition(object):
             diff = abs(track_a_curr_amp - track_b_start_amp)
             if diff < min_for_length[1]:
                 min_for_length = (i, diff)
-
         self.start_a = min_for_length[0]
-
         # build the section based on length:
         types = None
         if length == Lengths.BAR: 
             # just a crossfade
             types = [Transition_Types.CROSSFADE]
-            self.sections = [Section(offset=0, length=length, types=[Transition_Types.CROSSFADE])]
         elif length == Lengths.PHRASE or Lengths.HALF:
             # crossfade with tempo match continious
             types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH]

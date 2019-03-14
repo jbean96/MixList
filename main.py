@@ -131,7 +131,7 @@ class MixListGui:
         if len(self.loaded_songs) == 0:
             self.message.set("No loaded songs...")
             return
-        first_goal = mix_goal.MixGoal(0.0, 0.0, 0.0, 0.0, 1)
+        first_goal = MixGoal(0.0, 0.0, 0.0, 0.0, 1)
         goals = [first_goal]
         self.analyze_songs()
         dj = Optimizer(self.loaded_songs, goals, style.Style_Lib.tempo_based.value)
