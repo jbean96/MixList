@@ -2,7 +2,7 @@ import sys, os, numpy, random, math
 lib_path = os.path.normpath(os.path.join(os.path.realpath(__file__), '..', '..'))
 sys.path.append(lib_path)
 from analyzer.song import Song
-from analyzer import analysis
+from analyzer.analysis import Feature
 from analyzer import usersong
 from optimizer.transition import Transition
 from optimizer.threshold import Cue
@@ -173,15 +173,21 @@ class Optimizer(object):
                 next_mix_score = curr_state[3] + scored_mix[1]
                 new_state = (next_song, next_set_list, next_mix_list, next_mix_score)
                 # if we're out of songs
-                if len(next_set_list) == 16:
+                if len(next_set_list) == 6:
                     complete_mixtapes.append(new_state)
                 else:
-                    print(len(next_set_list))
                     mixtapes_to_finish.append(new_state)
         # get the best mixtape based on mix score
         best_mixtape = max(complete_mixtapes, key= lambda tup: tup[3])
         # generate the mix script for the best mixtape
         return self.generate_simple_transition_script(best_mixtape[2])
+    
+    def generate_mix_path(self, start: MixGoal, end: MixGoal, tracks: int) -> List[Mix]:
+        """
+        Returns the optimal mix list between two goals for a given number of tracks.
+        """
+        raise NotImplementedError()
+
     
     def generate_simple_transition_script(self, mix_list: List[Mix]) -> List[Dict]:
         """
@@ -202,7 +208,6 @@ class Optimizer(object):
             transition_script.append(curr_script)
 
         return transition_script
-
         """
         TODO:
         Guarantee: effects list and transition list are in the same order.
@@ -217,7 +222,13 @@ class Optimizer(object):
             Lower value means higher similarity.
         """
         score = 0.0
-        raise NotImplementedError()
+        if not numpy.isnan(song.get_analysis_feature(Feature.DANCEABILITY)):
+            score += numpy.abs(song.get_analysis_feature(Feature.DANCEABILITY) - goal.dance) 
+        if not numpy.isnan(song.get_analysis_feature(Feature.ENERGY)):
+            score += numpy.abs(song.get_analysis_feature(Feature.ENERGY) - goal.energy) 
+        if not numpy.isnan(song.get_analysis_feature(Feature.VALENCE)):
+            score += numpy.abs(song.get_analysis_feature(Feature.VALENCE) - goal.valence) 
+        return score
 
     @staticmethod
     def mix_songs(a: usersong.UserSong, b: usersong.UserSong) -> Mix:
@@ -259,11 +270,11 @@ class Optimizer(object):
         Song a --> Song b --> Song c using 16 beat crossfade/tempochange transition.
         """
         # get beat 16 beats from the end of Song a for transition 2
-        beat_a_0 = len(a.get_analysis_feature(analysis.Feature.BEATS)) - 33
+        beat_a_0 = len(a.get_analysis_feature(Feature.BEATS)) - 33
         # start beat 0 for Song b on transition 0
         beat_b_0 = 0
         # start beat 16 beats from end of Song b for transition 1
-        beat_b_1 = len(b.get_analysis_feature(analysis.Feature.BEATS)) - 33
+        beat_b_1 = len(b.get_analysis_feature(Feature.BEATS)) - 33
         # start beat 0 for Song c on transition 1
         beat_c_1 = 0
         # transition is length is always 16
