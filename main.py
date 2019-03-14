@@ -134,7 +134,7 @@ class MixListGui:
         first_goal = MixGoal(self.loaded_songs[0], 0.0)
         goals = [first_goal]
         self.analyze_songs()
-        dj = Optimizer(self.loaded_songs, goals, None, style.Style_Lib.tempo_based.value)
+        dj = Optimizer(self.loaded_songs, goals, style.Style_Lib.tempo_based.value)
         mix = dj.generate_mixtape()
         self.log_message(mix)
         comp = composer.composer_parser(mix)
