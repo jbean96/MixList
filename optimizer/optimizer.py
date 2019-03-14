@@ -60,6 +60,9 @@ class Optimizer(object):
         assert isinstance(style, Style)
         self.style = style
 
+        # statically programmed mixtape length
+        self.mixtape_length = len(self.library)
+
     def get_possible_mixes(self, curr_song: Song, played_songs: Set[Song], max_results=2) -> Set[tuple]:
         """
         Returns all possible (Mix, style_score) Tuples given curr_song and all unplayed songs 
@@ -172,10 +175,11 @@ class Optimizer(object):
                 # update the mix_list score
                 next_mix_score = curr_state[3] + scored_mix[1]
                 new_state = (next_song, next_set_list, next_mix_list, next_mix_score)
-                # if we're out of songs
-                if len(next_set_list) == len(self.library):
+                # specified mixtape length reached
+                if len(next_set_list) == self.mixtape_length:
                     complete_mixtapes.append(new_state)
                 else:
+                    print(len(next_set_list))
                     mixtapes_to_finish.append(new_state)
         # get the best mixtape based on mix score
         best_mixtape = max(complete_mixtapes, key= lambda tup: tup[3])
@@ -203,7 +207,7 @@ class Optimizer(object):
             # create the transition
             curr_transition = Transition(curr_mix, self.style)
             # simplify that ish mang.
-            curr_transition.create_random_transition()
+            curr_transition.create_ideal_intro_transition()
             curr_script =  curr_transition.to_script()
             transition_script.append(curr_script)
 
