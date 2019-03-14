@@ -20,6 +20,8 @@ class Optimizer(object):
     Computes optimal mixtape based on given songs, transitions, style and goals.
     version 1: consider only song sequences == 2
     version 2: consider song sequences >= 2 or potentially entire "goal" sections
+    TODO: add parameter for the number of songs in a mixtape
+    TODO: add parameter for the start song
     TODO: create mixes by comparing songs on a more complex feature set
     TODO: create and parameterize a library of high level transitions
     TODO: create a library of different "styles"
