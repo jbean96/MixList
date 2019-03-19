@@ -24,7 +24,7 @@ class MixListGui:
     BORDER_WIDTH = 3
     NUM_SECTIONS = 2
 
-    def __init__(self, master : Tk, cache_path : str, debug : bool, style):
+    def __init__(self, master : Tk, cache_path : str, debug : bool, style: str):
         """
         Constructs the MixListGui object
 
@@ -135,7 +135,8 @@ class MixListGui:
         goals = [first_goal]
         self.analyze_songs()
         style_map = {"perfect_mixes": style.Style_Lib.perfect_mixes, "balanced": style.Style_Lib.balanced, "vibe_based": style.Style_Lib.vibe_based, "tempo_based": style.Style_Lib.tempo_based}
-        dj = Optimizer(self.loaded_songs, goals, style_map[self.style])
+        print(self.style)
+        dj = Optimizer(self.loaded_songs, goals, style_map[self.style].value)
         mix = dj.generate_mixtape()
         self.log_message(mix)
         comp = composer.composer_parser(mix)
