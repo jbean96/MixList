@@ -31,7 +31,7 @@ class Optimizer(object):
         choose the next feature (based on priority or random) --> choose a style value, select only mixes in that range from previous
         etc..
     """
-    def __init__(self, songs: List[usersong.UserSong], goals: List[MixGoal], style: Style):
+    def __init__(self, songs: List[usersong.UserSong], goals: List[MixGoal], style: Style, first_song: str=None):
         """
         Initializes an Optimizer object using given params.
 
@@ -43,9 +43,12 @@ class Optimizer(object):
         # Validate UserSong objects.
         self.library = set() 
         # ***DJ PUN AIRHORN***
-
+        self.first_song = None
         for s in songs:
             assert isinstance(s, usersong.UserSong)
+            print(s.get_name())
+            if first_song is not None and s.get_name() == first_song:
+                self.first_song = s
             self.library.add(s)
 
         # Validate goals.
@@ -152,7 +155,11 @@ class Optimizer(object):
         # no songs have been played in this SET ***DJ PUN AIRHORN***
         set_list = set()
         # the truth:
-        curr_song = random.sample(self.library, 1)[0]
+        if self.first_song is not None:
+            curr_song = self.first_song
+        else:
+            curr_song = random.sample(self.library, 1)[0]
+
         # make sure we know what we played
         set_list.add(curr_song)
         # hit "record" in your DJ software

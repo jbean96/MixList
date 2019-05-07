@@ -24,7 +24,7 @@ class MixListGui:
     BORDER_WIDTH = 3
     NUM_SECTIONS = 2
 
-    def __init__(self, master : Tk, cache_path : str, debug : bool, style: str):
+    def __init__(self, master : Tk, cache_path : str, debug : bool, style: str, first_song: str):
         """
         Constructs the MixListGui object
 
@@ -37,6 +37,7 @@ class MixListGui:
         self.master = master
         self.master.title("MixList")
         self.style = style
+        self.first_song = first_song
         self.debug = debug
 
         self.cache_path = cache_path
@@ -135,8 +136,9 @@ class MixListGui:
         goals = [first_goal]
         self.analyze_songs()
         style_map = {"perfect_mixes": style.Style_Lib.perfect_mixes, "balanced": style.Style_Lib.balanced, "vibe_based": style.Style_Lib.vibe_based, "tempo_based": style.Style_Lib.tempo_based}
-        print(self.style)
-        dj = Optimizer(self.loaded_songs, goals, style_map[self.style].value)
+        print("Chosen Style: {}".format(self.style))
+        print("First Song: {}".format(self.first_song))
+        dj = Optimizer(self.loaded_songs, goals, style_map[self.style].value, )
         mix = dj.generate_mixtape()
         self.log_message(mix)
         comp = composer.composer_parser(mix)
@@ -164,7 +166,7 @@ def _main(args: argparse.Namespace):
     cache_path = os.path.abspath(args.cache_path)
     if not os.path.isdir(cache_path):
         os.mkdir(cache_path)
-    MixListGui(root, cache_path, args.debug, args.style)
+    MixListGui(root, cache_path, args.debug, args.style, args.first_song)
     root.mainloop()
 
 if __name__ == '__main__':
@@ -172,6 +174,7 @@ if __name__ == '__main__':
     parser.add_argument("--cache", "-c", type=str, dest="cache_path", default="mixlist_cache", help="The folder to store analyses in")
     parser.add_argument("--debug", "-d", dest="debug", action="store_true")
     parser.add_argument("--style", "-s", dest="style", choices=["perfect_mixes", "balanced", "vibe_based", "tempo_based"], default="tempo_based")
+    parser.add_argument("--first", "-f", type=str, dest="first_song", default=None)
     parser.set_defaults(debug=False)
 
     args = parser.parse_args()
