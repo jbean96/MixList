@@ -218,9 +218,9 @@ class Optimizer(object):
             curr_transition = Transition(curr_mix, self.style)
             # simplify that ish mang.
             curr_transition.create_ideal_intro_transition()
-            curr_script =  curr_transition.to_script()
+            curr_script = curr_transition.to_script()
             transition_script.append(curr_script)
-
+        print(transition_script)
         return transition_script
         """
         TODO:

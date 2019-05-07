@@ -172,7 +172,8 @@ def _main(args: argparse.Namespace):
     cache_path = os.path.abspath(args.cache_path)
     if not os.path.isdir(cache_path):
         os.mkdir(cache_path)
-    MixListGui(root, cache_path, args.debug, args.style, args.first_song)
+    MixListGui(root, cache_path, args.debug, args.style, args.max_length, 
+               args.first_song)
     root.mainloop()
 
 if __name__ == '__main__':
