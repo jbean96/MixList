@@ -51,7 +51,11 @@ class Mix(object):
         tempo_diff = track_b.get_analysis_feature(Feature.TEMPO) - track_a.get_analysis_feature(Feature.TEMPO)
         # compare key
         # get the distance between keys according to the Camelot wheel.
-        key_diff = numpy.nan
+        if (track_a.get_analysis_feature(Feature.KEY) is not None 
+            and track_a.get_analysis_feature(Feature.KEY) is not None):
+            key_diff = 1.0 - track_a.get_analysis_feature(Feature.KEY).compare(track_a.get_analysis_feature(Feature.KEY))
+        else:
+            key_diff = numpy.nan
         # compare danceability
         dance_diff = track_b.get_analysis_feature(Feature.DANCEABILITY) - track_a.get_analysis_feature(Feature.DANCEABILITY)
         # compare energy

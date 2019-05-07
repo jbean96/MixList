@@ -38,14 +38,19 @@ class Style(object):
         # for each feature: distr(mix_value, feature_mean, feature_deviation) * feature_weight
         for feature in Cue:
             if not numpy.isnan(mix.threshold[feature.value]):
-                score += self.distr.pdf(mix.threshold[feature.value], self.mean[feature.value], self.dev[feature.value]) * self.weight[feature.value]
+                if feature is not Cue.KEY:
+                    score += self.distr.pdf(mix.threshold[feature.value], self.mean[feature.value], self.dev[feature.value]) * self.weight[feature.value]
+                else:
+                    # use survival function (1 - cdf) for key.
+                    score += self.distr.sf(mix.threshold[feature.value], self.mean[feature.value], self.dev[feature.value]) * self.weight[feature.value]
             else:
                 score += 0.0
         return score 
     
     def mix_feature_score(self, mix: Mix, feature: Cue) -> float:
         """
-        Return the score for this style for a Mix considering only a single feature WEIGHTED. Returns numpy.nan if Mix feature is numpy.nan.
+        Return the score for this style for a Mix considering only a 
+        single feature WEIGHTED. Returns numpy.nan if Mix feature is numpy.nan.
         """
         if numpy.isnan(mix.threshold[feature.value]):
             return numpy.nan
@@ -58,7 +63,7 @@ class Style(object):
         return "{} : {}".format(numpy.vstack((self.mean, self.dev)), self.weight)
 
 class Style_Lib(Enum):
-    perfect_mixes = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([3, 1, 0.1, 0.1, 0.1]), numpy.array([9, 0, 0.3, 0.3, 0.3])) 
-    balanced = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([10, 3, 0.2, 0.2, 0.2]), numpy.array([7, 0, 1, 1, 1]))    
-    vibe_based = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([15, 6, 0.3, 0.3, 0.3]), numpy.array([4, 0, 2, 2, 2]))
-    tempo_based = Style(numpy.array([0, 0, 0, 0, 0]), numpy.array([5, 0, 0.2, 0.2, 0.2]), numpy.array([9, 0, 0.1, 0.1, 0.1])) 
+    perfect_mixes = Style(numpy.array([0, 0.5, 0, 0, 0]), numpy.array([3, 0.5, 0.1, 0.1, 0.1]), numpy.array([5, 5, 0, 0, 0])) 
+    balanced = Style(numpy.array([0, 0.5, 0, 0, 0]), numpy.array([10, 0.5, 0.2, 0.2, 0.2]), numpy.array([5, 2, 1, 1, 1]))    
+    vibe_based = Style(numpy.array([0, 0.5, 0, 0, 0]), numpy.array([15, 0.5, 0.3, 0.3, 0.3]), numpy.array([2, 2, 2, 2, 2]))
+    tempo_based = Style(numpy.array([0, 0.5, 0, 0, 0]), numpy.array([5, 0.5, 0.2, 0.2, 0.2]), numpy.array([9, 0.7, 0.1, 0.1, 0.1])) 

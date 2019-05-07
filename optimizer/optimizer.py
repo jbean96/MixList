@@ -49,7 +49,7 @@ class Optimizer(object):
         for s in songs:
             assert isinstance(s, usersong.UserSong)
             print(s.get_name())
-            if first_song is not None and s.get_name() == first_song:
+            if s.get_name() == first_song:
                 self.first_song = s
             self.library.add(s)
 
@@ -229,7 +229,7 @@ class Optimizer(object):
         effect: {start_offset: integer, end_offset: integer, type: effect_type}
         """
 
-    @ staticmethod 
+    @staticmethod 
     def compare_song_to_goal(song: Song, goal: MixGoal) -> float:
         """
             Return a value <= 0.0 comparing a Song to the MixGoal based on qualitative features.

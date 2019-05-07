@@ -238,7 +238,9 @@ class Transition(object):
             types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH]
         else:
             # crossfade with tempo match 
-            types=[Transition_Types.CROSSFADE, Transition_Types.TEMPO_MATCH2]
+            types=[Transition_Types.CROSSFADE, 
+                   random.sample([Transition_Types.TEMPO_MATCH, 
+                                  Transition_Types.TEMPO_MATCH2], 1)[0]]
 
         self.sections = [Section(offset=0, length=length, types=types)]
     
