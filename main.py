@@ -7,7 +7,7 @@ from tkinter import *
 
 from analyzer import usersong
 from optimizer.optimizer import Optimizer
-from optimizer import style
+from optimizer.style import Style_Lib
 from optimizer.mix_goal import MixGoal
 from composer import composer
 
@@ -24,7 +24,8 @@ class MixListGui:
     BORDER_WIDTH = 3
     NUM_SECTIONS = 2
 
-    def __init__(self, master : Tk, cache_path : str, debug : bool, style: str, first_song: str):
+    def __init__(self, master : Tk, cache_path : str, debug : bool, style: str, 
+                 max_length: int, first_song: str):
         """
         Constructs the MixListGui object
 
@@ -37,6 +38,7 @@ class MixListGui:
         self.master = master
         self.master.title("MixList")
         self.style = style
+        self.max_length = max_length
         self.first_song = first_song
         self.debug = debug
 
@@ -111,7 +113,10 @@ class MixListGui:
         self.log_songs()
 
     def load_songs(self):
-        file_paths = filedialog.askopenfilenames(initialdir=os.path.curdir, title="Select song files", filetypes=(("mp3 files", "*.mp3"), ("wav files", "*.wav")))
+        file_paths = filedialog.askopenfilenames(initialdir=os.path.curdir, 
+                                                 title="Select song files", 
+                                                 filetypes=(("mp3 files", "*.mp3"), 
+                                                            ("wav files", "*.wav")))
         new_songs = list(map(usersong.UserSong, list(file_paths)))
         ### NEED TO TURN INTO SONG OBJECTS ###
         self.loaded_songs.extend(new_songs)
@@ -135,10 +140,11 @@ class MixListGui:
         first_goal = MixGoal(0.0, 0.0, 0.0, 0.0, 1)
         goals = [first_goal]
         self.analyze_songs()
-        style_map = {"perfect_mixes": style.Style_Lib.perfect_mixes, "balanced": style.Style_Lib.balanced, "vibe_based": style.Style_Lib.vibe_based, "tempo_based": style.Style_Lib.tempo_based}
         print("Chosen Style: {}".format(self.style))
+        print("Maximum Length: {}".format(self.max_length))
         print("First Song: {}".format(self.first_song))
-        dj = Optimizer(self.loaded_songs, goals, style_map[self.style].value, )
+        dj = Optimizer(self.loaded_songs, goals, Style_Lib[self.style].value, 
+                       self.max_length, self.first_song)
         mix = dj.generate_mixtape()
         self.log_message(mix)
         comp = composer.composer_parser(mix)
@@ -175,6 +181,7 @@ if __name__ == '__main__':
     parser.add_argument("--debug", "-d", dest="debug", action="store_true")
     parser.add_argument("--style", "-s", dest="style", choices=["perfect_mixes", "balanced", "vibe_based", "tempo_based"], default="tempo_based")
     parser.add_argument("--first", "-f", type=str, dest="first_song", default=None)
+    parser.add_argument("--max_length", "-m", type=int, dest="max_length", default=None)
     parser.set_defaults(debug=False)
 
     args = parser.parse_args()

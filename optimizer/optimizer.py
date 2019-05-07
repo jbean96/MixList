@@ -20,8 +20,6 @@ class Optimizer(object):
     Computes optimal mixtape based on given songs, transitions, style and goals.
     version 1: consider only song sequences == 2
     version 2: consider song sequences >= 2 or potentially entire "goal" sections
-    TODO: add parameter for the number of songs in a mixtape
-    TODO: add parameter for the start song
     TODO: create mixes by comparing songs on a more complex feature set
     TODO: create and parameterize a library of high level transitions
     TODO: create a library of different "styles"
@@ -31,7 +29,8 @@ class Optimizer(object):
         choose the next feature (based on priority or random) --> choose a style value, select only mixes in that range from previous
         etc..
     """
-    def __init__(self, songs: List[usersong.UserSong], goals: List[MixGoal], style: Style, first_song: str=None):
+    def __init__(self, songs: List[usersong.UserSong], goals: List[MixGoal], 
+        style: Style, mixtape_length: int=None, first_song: str=None):
         """
         Initializes an Optimizer object using given params.
 
@@ -39,6 +38,9 @@ class Optimizer(object):
             songs: list of UserSong objects to create the mixtape.
             goals: list of MixGoal objects to guide the construction of the mixtape.
             style: Style of the DJ used to influence mixtape creation. 
+            num_songs: Maximum number of songs in this mixtape.
+            first_song: String name of the file that should be the first song
+                        in this mixtape.
         """
         # Validate UserSong objects.
         self.library = set() 
@@ -65,8 +67,11 @@ class Optimizer(object):
         assert isinstance(style, Style)
         self.style = style
 
-        # statically programmed mixtape length
-        self.mixtape_length = len(self.library)
+        # set the maximum length of the mixtape, assume entire playlist if none.
+        if mixtape_length is None:
+            self.mixtape_length = len(self.library)
+        else:
+            self.mixtape_length = mixtape_length
 
     def get_possible_mixes(self, curr_song: Song, played_songs: Set[Song], max_results=2) -> Set[tuple]:
         """
@@ -98,11 +103,6 @@ class Optimizer(object):
         # return <= max_results possible mixes
         cutoff = min(len(scored_mixes), max_results)
         possible_mixes = scored_mixes[:cutoff]
-
-        """
-        for mix_to_add in possible_mixes:
-            print("[{}] -> [{} : {}] -> [{}]".format(mix_to_add[0].track_a, mix_to_add[0].threshold, mix_to_add[1], mix_to_add[0].track_b))
-        """
 
         return possible_mixes
 
@@ -155,6 +155,7 @@ class Optimizer(object):
         # no songs have been played in this SET ***DJ PUN AIRHORN***
         set_list = set()
         # the truth:
+        curr_song = None
         if self.first_song is not None:
             curr_song = self.first_song
         else:
