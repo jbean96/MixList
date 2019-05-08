@@ -53,6 +53,9 @@ class Optimizer(object):
                 self.first_song = s
             self.library.add(s)
 
+        if len(self.library) == 1:
+            raise AssertionError("You only gave MixList song! DJs do more than just play songs. ")
+
         # Validate goals.
         self.goals = list()
         for g in goals:
@@ -68,7 +71,7 @@ class Optimizer(object):
         self.style = style
 
         # set the maximum length of the mixtape, assume entire playlist if none.
-        if mixtape_length is None:
+        if mixtape_length is None or mixtape_length > len(self.library):
             self.mixtape_length = len(self.library)
         else:
             self.mixtape_length = mixtape_length

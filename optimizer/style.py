@@ -54,6 +54,10 @@ class Style(object):
         """
         if numpy.isnan(mix.threshold[feature.value]):
             return numpy.nan
+        elif feature is Cue.KEY:
+                    # use survival function (1 - cdf) for key.
+            return self.distr.sf(mix.threshold[feature.value], self.mean[feature.value], self.dev[feature.value]) * self.weight[feature.value]
+
         return self.distr.pdf(mix.threshold[feature.value], self.mean[feature.value], self.dev[feature.value]) * self.weight[feature.value]
     
     def __str__(self):
