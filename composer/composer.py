@@ -267,7 +267,7 @@ class composer_parser(object):
         last_index = len(c_songs) -1
         # Since last song does not have outro set to end of song
         c_songs[last_index]['start_outro'] = 0
-        c_songs[last_index]['end_outro'] = beats_array[len(beats_array) - 1].get_start_time().item()
+        c_songs[last_index]['end_outro'] = beats_array[len(beats_array) - 1].get_start_time()
 
         # Start composer, Audacity must be running
         c = composer(c_songs, c_transitions)
